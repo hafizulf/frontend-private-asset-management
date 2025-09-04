@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] },
     "target": "ESNext",          // or ES2020+
     "module": "ESNext",          // must be es2020+ or node16+
     "moduleResolution": "Node",  // recommended with Vite

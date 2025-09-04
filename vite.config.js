@@ -1,42 +1,72 @@
 import { defineConfig } from "vite";
 import path from "path";
+import fs from "fs";
+
+function aliasRedirect(map) {
+  return (req, res, next) => {
+    if (req.method !== "GET") return next();
+    const [pathname, q = ""] = (req.url || "").split("?");
+    const to = map[pathname];
+    if (to) {
+      res.statusCode = 302;
+      res.setHeader("Location", to + (q ? "?" + q : ""));
+      return res.end();
+    }
+    next();
+  };
+}
+
+// redirect "/foo" -> "/foo/" kalau ada folder index.html
+function slashForFolders(rootRel) {
+  const base = path.resolve(process.cwd(), rootRel);
+  return (req, res, next) => {
+    if (req.method !== "GET") return next();
+    const [pathname, q = ""] = (req.url || "").split("?");
+    if (!pathname || pathname === "/" || pathname.endsWith("/") || pathname.endsWith(".html")) {
+      return next();
+    }
+    const candidate = path.join(base, "." + pathname, "index.html");
+    if (fs.existsSync(candidate)) {
+      res.statusCode = 301;
+      res.setHeader("Location", pathname + "/" + (q ? "?" + q : ""));
+      return res.end();
+    }
+    next();
+  };
+}
 
 export default defineConfig({
   root: "src",
+  appType: "mpa",
   envDir: process.cwd(),
+  resolve: { alias: { "@": path.resolve(__dirname, "src") } },
   build: {
-    outDir: '../dist',
+    outDir: "../dist",
     rollupOptions: {
       input: {
-        login: path.resolve(__dirname, "src/auth/login.html"),
         index: path.resolve(__dirname, "src/index.html"),
-      }
-    }
+        login: path.resolve(__dirname, "src/auth/login/index.html"),
+        test:  path.resolve(__dirname, "src/test/index.html"),
+      },
+    },
   },
-  preview: {
-    port: 8000
-  },
+  preview: { port: 8000 },
   plugins: [
     {
-      name: "auth-guard",
-      transformIndexHtml(html, ctx) {
-        // 1) Hard exclude by filename to avoid any regex edge cases
-        if (ctx?.filename?.endsWith("/src/auth/login.html")) return html;
-
-        // 2) Also support the public-page meta flag
-        const isPublic = /<meta\s+name=["']public-page["']\s+content=["']true["']\s*\/?>/i.test(html);
-        if (isPublic) return html;
-
-        return {
-          html,
-          tags: [
-            {
-              tag: "script",
-              attrs: { type: "module", src: "/assets/javascript/guard.ts" },
-              injectTo: "body",
-            },
-          ],
-        };
+      name: "routes",
+      configureServer(server) {
+        server.middlewares.use(slashForFolders("src"));
+        server.middlewares.use(aliasRedirect({
+          "/login": "/auth/login/",
+          "/test": "/test/",
+        }));
+      },
+      configurePreviewServer(server) {
+        server.middlewares.use(slashForFolders("dist"));
+        server.middlewares.use(aliasRedirect({
+          "/login": "/auth/login/",
+          "/test": "/test/",
+        }));
       },
     },
   ],
