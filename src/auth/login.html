@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Login</title>
+  <script type="module">
+    import "../assets/css/style.css";
+  </script>
+</head>
+<body>
+  <form id="login-form">
+    <div>
+      <input type="text" name="email" id="email" placeholder="Email" required />
+      <span class="error" id="email-error"></span>
+    </div>
+    <div>
+      <input type="password" name="password" id="password" placeholder="Password" required />
+      <span class="error" id="password-error"></span>
+    </div>
+    <button type="submit">Login</button>
+  </form>
+
+  <!-- mark this page as public BEFORE loading the guard -->
+  <script>window.__PUBLIC_PAGE__ = true;</script>
+  <script type="module" src="/assets/javascript/guard.ts"></script>
+
+  <script type="module">
+    import auth from "/assets/javascript/auth.ts";
+    import http from "/assets/javascript/http.ts";
+
+    (async () => {
+      if (await auth.isLoggedIn()) {
+        const params = new URLSearchParams(location.search);
+        const next = params.get("next");
+
+        // Prevent looping back to the login page if next is bad/missing
+        const target = next && !next.startsWith("/auth/login")
+          ? next
+          : "/";
+
+        location.replace(target);
+      }
+    })();
+
+    const form = document.getElementById("login-form");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      document.querySelectorAll(".error").forEach((el) => (el.textContent = ""));
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      try {
+        const { data } = await http.post("/auths/login", { email, password });
+        localStorage.setItem("token", data.data.token);
+
+        const params = new URLSearchParams(location.search);
+        const next = params.get("next") || "/";
+        location.replace(next);
+      } catch (err) {
+        const res = err?.response;
+        if (res?.status === 422 && res.data?.errors) {
+          Object.entries(res.data.errors).forEach(([field, msgs]) => {
+            const span = document.getElementById(`${field}-error`);
+            if (span) span.textContent = msgs.join(", ");
+          });
+        } else if (res?.status === 401 || res?.status === 404) {
+          document.getElementById("password-error").textContent = "Invalid email or password";
+        } else {
+          console.error(err);
+          alert("Login failed. Please try again.");
+        }
+      }
+    });
+  </script>
+</body>
+</html>

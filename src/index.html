@@ -6,10 +6,11 @@
   <title>Home Page</title>
 </head>
 <body>
-  <script type="module">
-    import auth from "./assets/javascript/auth.ts"
+  <h1>Home Page</h1>
 
-    auth.isLoggedIn();
+  <script type="module" src="/assets/javascript/guard.ts"></script>
+  <script type="module">
+    console.log("index page");
   </script>
 </body>
 </html>
