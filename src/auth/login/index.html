@@ -1,26 +1,50 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
-  <meta charset="utf-8" />
-  <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/bootstrap.css">
+    <link rel="stylesheet" href="/assets/vendors/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="/assets/css/app.css">
+    <link rel="stylesheet" href="/assets/css/pages/auth.css">
 </head>
 <body>
-  <form id="login-form">
-    <div>
-      <input type="text" name="email" id="email" placeholder="Email" required />
-      <span class="error" id="email-error"></span>
-    </div>
-    <div>
-      <input type="password" name="password" id="password" placeholder="Password" required />
-      <span class="error" id="password-error"></span>
-    </div>
-    <button type="submit">Login</button>
-  </form>
+    <div id="auth">
 
-  <script type="module">
-    import { initLoginPage } from "./login.page.ts";
-    initLoginPage();
-  </script>
+        <div class="row h-100">
+            <div class="col-lg-5 col-12">
+                <div id="auth-left">
+                    <div class="auth-logo">
+                        <a href="#"><img src="/assets/images/logo/logo.png" alt="Logo"></a>
+                    </div>
+                    <h1 class="auth-title">Log in.</h1>
+                    <p class="auth-subtitle mb-5">Log in with your data that you entered during registration.</p>
 
+                    <form id="login-form" method="post">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="text" name="email" class="form-control" id="email" placeholder="Email" required />
+                        <div id="email-error" class="invalid-feedback"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password">Password</label>
+                            <input type="password" name="password" class="form-control" id="password" placeholder="Password" required />
+                            <div id="password-error" class="invalid-feedback"></div>
+                        </div>
+                        <button type="submit" id="btn-login" class="btn btn-primary btn-block">Login</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script type="module">
+      import { initLoginPage } from "./login.page.ts";
+      initLoginPage();
+    </script>
 </body>
+
 </html>
