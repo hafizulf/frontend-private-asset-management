@@ -47,6 +47,7 @@ export default defineConfig({
         index: path.resolve(__dirname, "src/index.html"),
         login: path.resolve(__dirname, "src/auth/login/index.html"),
         test:  path.resolve(__dirname, "src/test/index.html"),
+        notFound: path.resolve(__dirname, "src/404.html"),
       },
     },
   },
@@ -59,6 +60,7 @@ export default defineConfig({
         server.middlewares.use(aliasRedirect({
           "/login": "/auth/login/",
           "/test": "/test/",
+          "/not-found": "/404.html",
         }));
       },
       configurePreviewServer(server) {
@@ -66,6 +68,7 @@ export default defineConfig({
         server.middlewares.use(aliasRedirect({
           "/login": "/auth/login/",
           "/test": "/test/",
+          "/not-found": "/404.html", 
         }));
       },
     },

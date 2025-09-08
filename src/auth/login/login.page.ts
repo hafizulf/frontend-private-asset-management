@@ -4,8 +4,11 @@ import { clearErrors, applyErrors, showFieldError } from "@/assets/javascript/he
 
 export async function initLoginPage() {
   if (await auth.isLoggedIn()) {
-    const p = new URLSearchParams(location.search);
-    location.replace(p.get("next") || "/");
+    // const p = new URLSearchParams(location.search);
+    // location.replace(p.get("next") || "/");
+
+    // redirect to 404
+    location.replace("/not-found");
     return;
   }
 
