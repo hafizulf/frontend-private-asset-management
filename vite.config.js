@@ -2,6 +2,10 @@ import { defineConfig } from "vite";
 import path, { resolve } from "path";
 import fs from "fs";
 import handlebars from "vite-plugin-handlebars";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function aliasRedirect(map) {
   return (req, res, next) => {
@@ -34,6 +38,77 @@ function slashForFolders(rootRel) {
     }
     next();
   };
+}
+
+function resolveHtmlCandidate(rootAbs, pathname) {
+  const p = (pathname || "/").split("?")[0];
+  if (p === "/" || p === "/index.html") {
+    const f = path.join(rootAbs, "index.html");
+    return fs.existsSync(f) ? f : null;
+  }
+  if (p.endsWith(".html")) {
+    const f = path.join(rootAbs, p.replace(/^\//, "")); // /404.html -> <root>/404.html
+    return fs.existsSync(f) ? f : null;
+  }
+  if (p.endsWith("/")) {
+    const f = path.join(rootAbs, p.replace(/^\//, ""), "index.html"); // /user/ -> <root>/user/index.html
+    return fs.existsSync(f) ? f : null;
+  }
+  return null; // not an HTML route; let other middleware handle (assets etc.)
+}
+
+function addDevNotFound(server) {
+  const rootAbs = path.resolve(__dirname, "src");
+  const notFoundAbs = path.resolve(rootAbs, "404.html");
+
+  server.middlewares.use((req, res, next) => {
+    if (req.method !== "GET") return next();
+
+    const pathname = (req.url || "").split("?")[0];
+
+    // ignore Vite internals & non-HTML assets
+    const ext = path.extname(pathname);
+    if ((ext && ext !== ".html") || pathname.startsWith("/@")) return next();
+
+    const candidate = resolveHtmlCandidate(rootAbs, pathname);
+    if (candidate) return next();
+
+    // serve transformed 404 so partials work in dev
+    const raw = fs.readFileSync(notFoundAbs, "utf-8");
+    server
+      .transformIndexHtml("/404.html", raw)
+      .then((html) => {
+        res.statusCode = 404;
+        res.setHeader("Content-Type", "text/html");
+        res.end(html);
+      })
+      .catch(() => {
+        res.statusCode = 404;
+        res.setHeader("Content-Type", "text/html");
+        res.end(raw);
+      });
+  });
+}
+
+function addPreviewNotFound(server) {
+  const rootAbs = path.resolve(__dirname, "dist");
+  const notFoundAbs = path.resolve(rootAbs, "404.html");
+
+  server.middlewares.use((req, res, next) => {
+    if (req.method !== "GET") return next();
+
+    const pathname = (req.url || "").split("?")[0];
+
+    const ext = path.extname(pathname);
+    if ((ext && ext !== ".html") || pathname.startsWith("/@")) return next();
+
+    const candidate = resolveHtmlCandidate(rootAbs, pathname);
+    if (candidate) return next();
+
+    res.statusCode = 404;
+    res.setHeader("Content-Type", "text/html");
+    res.end(fs.readFileSync(notFoundAbs, "utf-8"));
+  });
 }
 
 export default defineConfig({
@@ -76,6 +151,7 @@ export default defineConfig({
           "/login": "/auth/login/",
           "/not-found": "/404.html",
         }));
+        addDevNotFound(server);
       },
       configurePreviewServer(server) {
         server.middlewares.use(slashForFolders("dist"));
@@ -83,6 +159,7 @@ export default defineConfig({
           "/login": "/auth/login/",
           "/not-found": "/404.html", 
         }));
+        addPreviewNotFound(server);
       },
     },
   ],
