@@ -50,20 +50,21 @@
 
 <script type="module">
   import user from "./user.page.ts";
-  
+
   const tbody = document.querySelector("#user-tbody");
-  const userList = await user.getUserList();
 
-  try {
-    const res = await user.getUserList();
-    const list = Array.isArray(res?.data) ? res.data : [];
+  (async () => {
+    try {
+      const list = await user.getUserList();
 
-    if (list.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="3" class="text-center text-muted py-4">0 user data</td>
-        </tr>`;
-    } else {
+      if (!Array.isArray(list) || list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="text-center text-muted py-4">0 user data</td>
+          </tr>`;
+        return;
+      }
+
       tbody.innerHTML = list.map(u => `
         <tr>
           <td class="text-bold-500">${escapeHtml(u.fullName)}</td>
@@ -72,16 +73,14 @@
           <td><a href="/user/${u.id}" class="btn btn-info">Detail</a></td>
         </tr>
       `).join("");
-    }
-  } catch (err) {
-    console.error(err);
-    if (tbody) {
+    } catch (err) {
+      console.error(err);
       tbody.innerHTML = `
         <tr>
-          <td colspan="3" class="text-center text-danger py-4">Failed to load users</td>
+          <td colspan="4" class="text-center text-danger py-4">Failed to load users</td>
         </tr>`;
     }
-  }
+  })();
 
   function escapeHtml(s) {
     return String(s ?? "")

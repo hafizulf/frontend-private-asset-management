@@ -124,6 +124,7 @@ export default defineConfig({
         index: path.resolve(__dirname, "src/index.html"),
         login: path.resolve(__dirname, "src/auth/login/index.html"),
         user: path.resolve(__dirname, "src/user/index.html"),
+        buyHistories: path.resolve(__dirname, "src/buy-histories/index.html"),
         notFound: path.resolve(__dirname, "src/404.html"),
       },
     },
@@ -136,6 +137,7 @@ export default defineConfig({
         const titles = {
           '/index.html': 'Home Page',
           '/user/index.html': 'Daftar User',
+          '/buy-histories/index.html': 'Riwayat Pembelian',
         };
         return {
           title: titles[pagePath] || 'Asset Management',

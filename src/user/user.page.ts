@@ -1,14 +1,17 @@
 import http from "@/assets/javascript/http";
 
-const getUserList = async () => {
-  try {
-    const data = await http.get("/users");
+export type User = {
+  id: string;
+  fullName: string;
+  email: string;
+  roleName: string;
+};
 
-    return data.data;
-  } catch (error) {
-    console.error("Error fetching data userList(): ", error);
-  }
-}
+const getUserList = async (): Promise<User[]> => {
+  const res = await http.get("/users");
+  const payload = res?.data;
+  return Array.isArray(payload?.data) ? payload.data : [];
+};
 
 export default {
   getUserList,
