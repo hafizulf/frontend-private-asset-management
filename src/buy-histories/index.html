@@ -20,6 +20,9 @@
                     <div class="col-12 col-md-12">
                         <div class="card">
                             <div class="card-content">
+                                <div class="card-header">
+                                  <a href="#" class="btn btn-primary" id="add-buy-history"><i class="bi bi-plus"></i> Tambah Riwayat</a>
+                                </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
                                         <table class="table table-lg text-center">
@@ -48,10 +51,49 @@
     </div>
 </div>
 
+<div class="modal fade" id="modal-tambah" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Tambah Riwayat</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-tambah">
+          <div class="mb-3">
+            <label for="commodityId" class="form-label">Komoditas</label>
+            <select class="form-select" name="commodityId" id="commodityId">
+              <option value="">Pilih Komoditas</option>a
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="date" class="form-label">Tanggal Pembelian</label>
+            <input type="date" name="date" class="form-control mb-3">
+          </div>
+          <div class="mb-3">
+            <label for="qty" class="form-label">Jumlah</label>
+            <input type="number" name="qty" class="form-control mb-3" placeholder="0">
+          </div>
+          <div class="mb-3">
+            <label for="totalPrice" class="form-label">Total Harga Keseluruhan</label>
+            <input type="text" name="totalPrice" class="form-control mb-3" id="totalPrice" placeholder="0">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" form="form-tambah" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {{> footer }}
 
 <script type="module">
-  import buyHistory from "./buy-history.page.ts";
+  import buyHistory from "./buy-history.page";
+  import { openModal } from "../components/modal";
+  import { attachCurrencyFormatter, getNumberRawValue } from "../helpers/formatter.ts" 
 
   const tbody = document.querySelector("#buy-history-tbody");
 
@@ -86,4 +128,16 @@
         </tr>`;
     }
   })();
+
+  const btnTambah = document.querySelector("#add-buy-history");
+  btnTambah.addEventListener("click", (e) => {
+    e.preventDefault();
+    openModal("#modal-tambah");
+  });
+
+  attachCurrencyFormatter("#totalPrice");
+  document.querySelector("#form-tambah").addEventListener("submit", (e) => {
+    e.preventDefault();
+    console.log(getNumberRawValue("#totalPrice"));
+  })
 </script>
