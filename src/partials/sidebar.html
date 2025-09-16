@@ -12,12 +12,35 @@
               </div>
               <div class="sidebar-menu">
                   <ul class="menu">
-                      <li class="sidebar-title">Menu</li>
+                      <li class="sidebar-title">Dashboard</li>
 
-                      <li class="sidebar-item active ">
-                          <a href="/" class='sidebar-link'>
+                      <li class="sidebar-item active">
+                          <a href="/dashboard" class='sidebar-link'>
                               <i class="bi bi-grid-fill"></i>
                               <span>Dashboard</span>
+                          </a>
+                      </li>
+                      <li class="sidebar-title">Transaction</li>
+
+                      <li class="sidebar-item">
+                          <a href="/buy-histories" class='sidebar-link'>
+                              <i class="bi bi-cart-plus-fill"></i>
+                              <span>Buy History</span>
+                          </a>
+                      </li>
+                      <li class="sidebar-item">
+                          <a href="/sell-histories" class='sidebar-link'>
+                              <i class="bi bi-clipboard-data"></i>
+                              <span>Sell History</span>
+                          </a>
+                      </li>
+
+                      <li class="sidebar-title">General</li>
+
+                      <li class="sidebar-item">
+                          <a href="/commodities" class='sidebar-link'>
+                              <i class="bi bi-box-seam"></i>
+                              <span>Commodity</span>
                           </a>
                       </li>
 
@@ -27,23 +50,13 @@
                               <span>User</span>
                           </a>
                       </li>
-                      
-                      <li class="sidebar-item  has-sub">
-                          <a href="#" class='sidebar-link'>
-                              <i class="bi bi-stack"></i>
-                              <span>Components</span>
-                          </a>
-                          <ul class="submenu ">
-                              <li class="submenu-item ">
-                                  <a href="component-alert.html">Alert</a>
-                              </li>
-                              <li class="submenu-item ">
-                                  <a href="component-badge.html">Badge</a>
-                              </li>
-                          </ul>
-                      </li>
 
-                      <li class="sidebar-title">Extra UI</li>
+                      <li class="sidebar-item">
+                          <a href="#" class='sidebar-link'>
+                              <i class="bi bi-box-arrow-right"></i>
+                              <span id="btn-logout">Logout</span>
+                          </a>
+                      </li>
                   </ul>
               </div>
               <button class="sidebar-toggler btn x"><i data-feather="x"></i></button>

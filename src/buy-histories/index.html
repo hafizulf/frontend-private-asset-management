@@ -1,0 +1,89 @@
+{{> header }}
+{{> sidebar}}
+
+<div id="app">
+    <div id="main">
+
+        <header class="mb-3">
+            <a href="#" class="burger-btn d-block d-xl-none">
+                <i class="bi bi-justify fs-3"></i>
+            </a>
+        </header>
+
+        <div class="page-heading">
+            <h3>Riwayat Pembelian</h3>
+        </div>
+
+        <div class="page-content">
+            <section class="section">
+                <div class="row">
+                    <div class="col-12 col-md-12">
+                        <div class="card">
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-lg text-center">
+                                            <thead>
+                                                <tr>
+                                                    <th>No.</th>
+                                                    <th>Tanggal</th>
+                                                    <th>Komoditi</th>
+                                                    <th>Jumlah</th>
+                                                    <th>Harga Satuan (Rp)</th>
+                                                    <th>Harga Total (Rp)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="buy-history-tbody">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </div>
+</div>
+
+{{> footer }}
+
+<script type="module">
+  import buyHistory from "./buy-history.page.ts";
+
+  const tbody = document.querySelector("#buy-history-tbody");
+
+  (async () => {
+    try {
+      const list = await buyHistory.getBuyHistoryList();
+
+      if (!Array.isArray(list) || list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="text-center text-muted py-4">0 buy history</td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map((u, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${u.date}</td>
+          <td>${u.commodityName} ${u.commodityUnit}</td>
+          <td>${u.qty}</td>
+          <td>Rp. ${Number(u.totalPrice / u.qty).toLocaleString("id-ID")}</td>
+          <td>Rp. ${Number(u.totalPrice).toLocaleString("id-ID")}</td>
+        </tr>
+      `).join("");
+
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="4" class="text-center text-danger py-4">Failed to load buy history</td>
+        </tr>`;
+    }
+  })();
+</script>
