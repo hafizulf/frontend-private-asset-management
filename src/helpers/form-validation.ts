@@ -11,6 +11,14 @@ export function clearErrors(container: ParentNode): void {
     .forEach((el) => (el.textContent = ""));
 }
 
+/** Clear error state for a single field by id */
+export function clearFieldError(container: ParentNode, fieldId: string): void {
+  const input = container.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(`#${fieldId}`);
+  const feedback = container.querySelector<HTMLElement>(`#${fieldId}-error`);
+  if (input) input.classList.remove("is-invalid", "is-valid");
+  if (feedback) feedback.textContent = "";
+}
+
 /** Mark a single field invalid and set its feedback text */
 export function showFieldError(container: ParentNode, fieldId: string, message: string): void {
   const input = container.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(`#${fieldId}`);

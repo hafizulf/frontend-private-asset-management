@@ -14,3 +14,10 @@ export function getNumberRawValue(selector: string): number {
   if (!input) return 0;
   return Number(input.value.replace(/\./g, "").replace(/,/g, ""));
 }
+
+export function formatDateToDDMMYYYY(dateStr: string): string {
+  if (!dateStr) return "";
+  const [year, month, day] = dateStr.split("-");
+  if (!year || !month || !day) return "";
+  return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+}

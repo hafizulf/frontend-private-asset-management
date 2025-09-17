@@ -1,4 +1,5 @@
 import { Modal } from "bootstrap";
+import Swal from "sweetalert2";
 
 export function openModal(selector: string) {
   const el = document.querySelector(selector);
@@ -10,4 +11,16 @@ export function openModal(selector: string) {
   });
 
   instance.show();
+}
+
+export function openSwal(
+  title: string, 
+  text: string, 
+  icon: "success" | "error" = "success"
+) {
+  Swal.fire({
+    title,
+    text,
+    icon,
+  });
 }

@@ -16,17 +16,29 @@ export interface IBuyHistoryView extends IBuyHistory {
   commodityUnit: string;
 }
 
-const getBuyHistoryList = async (): Promise<any> => {
+const prefix = "/buy-histories";
+const getBuyHistoryList = async (): Promise<IBuyHistoryView[]> => {
   try {
-    const res = await http.get("/buy-histories");
+    const res = await http.get(`${prefix}`);
     const payload = res?.data;
     return Array.isArray(payload?.data) ? payload.data : [];
   } catch (error) {
     console.log("Error", error);
+    return [];
   }
 };
 
+const saveBuyHistory = async (payload: IBuyHistory): Promise<any> => {
+  try {
+    const res = await http.post(`${prefix}`, payload);
+    return res;
+  } catch (error: any) {
+    console.log("Error", error);
+    return error.response;
+  }
+}
 
 export default {
   getBuyHistoryList,
+  saveBuyHistory,
 }

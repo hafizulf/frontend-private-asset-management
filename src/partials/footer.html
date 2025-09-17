@@ -4,3 +4,18 @@
 
     <!-- Guard to prevent user access -->
     <script type="module" src="/assets/javascript/guard.ts"></script>  
+
+    <script type="module">
+      import { clearErrors } from "@/helpers/form-validation";
+
+      document.querySelectorAll('.modal [data-bs-dismiss="modal"]').forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const modal = btn.closest(".modal");
+        const form = modal?.querySelector("form");
+        if (form) {
+          clearErrors(form);
+          form.reset();
+        }
+      });
+    });
+    </script>

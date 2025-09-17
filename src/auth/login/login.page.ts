@@ -1,6 +1,6 @@
 import auth from "@/assets/javascript/auth";
 import http from "@/assets/javascript/http";
-import { clearErrors, applyErrors, showFieldError } from "@/assets/javascript/helpers/form-validation";
+import { clearErrors, applyErrors, showFieldError } from "@/helpers/form-validation";
 
 export async function initLoginPage() {
   if (await auth.isLoggedIn()) {
