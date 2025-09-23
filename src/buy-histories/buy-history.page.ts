@@ -59,9 +59,19 @@ const updateBuyHistory = async (payload: IBuyHistory): Promise<AxiosResponse> =>
   }
 }
 
+const deleteBuyHistory = async (id: string): Promise<AxiosResponse> => {
+  try {
+    const res = await http.delete(`${prefix}/${id}`);
+    return res;
+  } catch (error: any) {
+    return error.response;
+  }
+}
+
 export default {
   getBuyHistoryList,
   saveBuyHistory,
   getOneBuyHistory,
   updateBuyHistory,
+  deleteBuyHistory,
 }

@@ -60,7 +60,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form id="form-tambah">
+        <form id="form-tambah" method="post">
           <div class="mb-3">
             <label for="commodityId" class="form-label">Komoditas</label>
             <select class="form-select" name="commodityId" id="commodityId">
@@ -91,7 +91,7 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button type="submit" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         <button type="submit" form="form-tambah" class="btn btn-primary">Save changes</button>
       </div>
     </div>
@@ -106,7 +106,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form id="form-update">
+        <form id="form-update" method="post">
           <div class="mb-3">
             <label for="commodityId" class="form-label">Komoditas</label>
             <select class="form-select" name="commodityId" id="commodityIdUpdate">
@@ -137,7 +137,7 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button type="submit" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         <button type="submit" form="form-update" class="btn btn-primary">Save changes</button>
       </div>
     </div>
@@ -151,7 +151,8 @@
   import commodity from "../commodity/commodity.page";
   import { 
     openModal,
-    openSwal
+    openSwal,
+    confirmDialogModal,
   } from "../components/modal";
   import { 
     attachCurrencyFormatter, 
@@ -341,7 +342,23 @@
     const deleteBtn = e.target.closest('.btn-delete');
     if (deleteBtn) {
       e.preventDefault();
-      console.log('Delete id:', deleteBtn.dataset.id);
+
+      const ok = await confirmDialogModal(
+        "Delete this data?",
+        "This action cannot be undone."
+      );
+      if (!ok) return;
+
+      const id = deleteBtn.dataset.id;
+      const response = await buyHistory.deleteBuyHistory(id);
+      if (response?.status === 404) {
+        openSwal("Failed to delete buy history", response.data.message, "error");
+      } else if (response?.status === 200) {
+        openSwal("Success", response.data.message, "success");
+        await loadBuyHistory();
+      } else {
+        openSwal("Failed to delete buy history", "Internal Server Error", "error");
+      }
     }
   });
 </script>

@@ -24,3 +24,22 @@ export function openSwal(
     icon,
   });
 }
+
+export async function confirmDialogModal(
+  title: string,
+  text: string,
+  confirmButtonText = "Yes, delete it",
+  cancelButtonText = "Cancel"
+): Promise<boolean> {
+  const res = await Swal.fire({
+    title,
+    text,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText,
+    cancelButtonText,
+    reverseButtons: true,
+    focusCancel: true,
+  });
+  return res.isConfirmed;
+}
