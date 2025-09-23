@@ -1,6 +1,15 @@
 type ErrorBag = Record<string, string | string[]>;
+type FieldOpts = { suffix?: string };
 
-/** Remove Bootstrap validation states + clear messages inside a form/container */
+function qInput(container: ParentNode, id: string, base: string) {
+  // try by id with suffix, then name with suffix, then name without
+  return (
+    container.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(`#${id}`) ||
+    container.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(`[name="${id}"]`) ||
+    container.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(`[name="${base}"]`)
+  );
+}
+
 export function clearErrors(container: ParentNode): void {
   container
     .querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(".form-control, .form-select")
@@ -11,26 +20,35 @@ export function clearErrors(container: ParentNode): void {
     .forEach((el) => (el.textContent = ""));
 }
 
-/** Clear error state for a single field by id */
-export function clearFieldError(container: ParentNode, fieldId: string): void {
-  const input = container.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(`#${fieldId}`);
-  const feedback = container.querySelector<HTMLElement>(`#${fieldId}-error`);
+export function clearFieldError(container: ParentNode, fieldId: string, opts: FieldOpts = {}): void {
+  const id = `${fieldId}${opts.suffix ?? ""}`;
+  const input = qInput(container, id, fieldId);
+  const feedback = container.querySelector<HTMLElement>(`#${id}-error`);
   if (input) input.classList.remove("is-invalid", "is-valid");
   if (feedback) feedback.textContent = "";
 }
 
-/** Mark a single field invalid and set its feedback text */
-export function showFieldError(container: ParentNode, fieldId: string, message: string): void {
-  const input = container.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(`#${fieldId}`);
-  const feedback = container.querySelector<HTMLElement>(`#${fieldId}-error`);
-  if (input) input.classList.add("is-invalid");
-  if (feedback) feedback.textContent = message;
+export function showFieldError(container: ParentNode, fieldId: string, message: string, opts: FieldOpts = {}): void {
+  const id = `${fieldId}${opts.suffix ?? ""}`;
+  const input = qInput(container, id, fieldId);
+  const feedback = container.querySelector<HTMLElement>(`#${id}-error`);
+
+  if (!input) {
+    console.warn(`[form-validation] Input not found for field "${fieldId}" -> tried id/name "${id}"`);
+  } else {
+    input.classList.add("is-invalid");
+  }
+
+  if (!feedback) {
+    console.warn(`[form-validation] Feedback node not found for "${id}-error"`);
+  } else {
+    feedback.textContent = message;
+  }
 }
 
-/** Apply server-side validation errors shaped like { field: "msg" | ["msg1","msg2"] } */
-export function applyErrors(container: ParentNode, errors: ErrorBag): void {
+export function applyErrors(container: ParentNode, errors: ErrorBag, opts: FieldOpts = {}): void {
   Object.entries(errors).forEach(([field, msgs]) => {
     const message = Array.isArray(msgs) ? msgs.join(", ") : msgs;
-    showFieldError(container, field, message);
+    showFieldError(container, field, message, opts);
   });
 }

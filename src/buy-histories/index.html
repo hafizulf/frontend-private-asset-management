@@ -70,22 +70,22 @@
           </div>
           <div class="mb-3">
             <label for="date" class="form-label">Tanggal Pembelian</label>
-            <input type="date" name="date" class="form-control mb-3" id="date">
+            <input type="date" name="date" class="form-control" id="date">
             <div id="date-error" class="invalid-feedback"></div>
           </div>
           <div class="mb-3">
             <label for="qty" class="form-label">Jumlah</label>
-            <input type="number" name="qty" class="form-control mb-3" id="qty" placeholder="0" min="1">
+            <input type="number" name="qty" class="form-control" id="qty" placeholder="0" min="1">
             <div id="qty-error" class="invalid-feedback"></div>
           </div>
           <div class="mb-3">
             <label for="totalPrice" class="form-label">Total Harga Keseluruhan</label>
-            <input type="text" name="totalPrice" class="form-control mb-3" id="totalPrice" placeholder="0">
+            <input type="text" name="totalPrice" class="form-control" id="totalPrice" placeholder="0">
             <div id="totalPrice-error" class="invalid-feedback"></div>
           </div>
           <div class="mb-3">
             <label for="memo" class="form-label">Memo</label>
-            <textarea name="memo" class="form-control mb-3" id="memo" rows="3" placeholder="Memo"></textarea>
+            <textarea name="memo" class="form-control" id="memo" rows="3" placeholder="Memo"></textarea>
             <div id="memo-error" class="invalid-feedback"></div>
           </div>
         </form>
@@ -93,6 +93,52 @@
       <div class="modal-footer">
         <button type="submit" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         <button type="submit" form="form-tambah" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modal-update" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Update Riwayat</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-update">
+          <div class="mb-3">
+            <label for="commodityId" class="form-label">Komoditas</label>
+            <select class="form-select" name="commodityId" id="commodityIdUpdate">
+              <option>Pilih Komoditas</option>
+            </select>
+            <div id="commodityIdUpdate-error" class="invalid-feedback"></div>
+          </div>
+          <div class="mb-3">
+            <label for="date" class="form-label">Tanggal Pembelian</label>
+            <input type="date" name="date" class="form-control" id="dateUpdate">
+            <div id="dateUpdate-error" class="invalid-feedback"></div>
+          </div>
+          <div class="mb-3">
+            <label for="qty" class="form-label">Jumlah</label>
+            <input type="number" name="qty" class="form-control" id="qtyUpdate" placeholder="0" min="1">
+            <div id="qtyUpdate-error" class="invalid-feedback"></div>
+          </div>
+          <div class="mb-3">
+            <label for="totalPrice" class="form-label">Total Harga Keseluruhan</label>
+            <input type="text" name="totalPrice" class="form-control" id="totalPriceUpdate" placeholder="0">
+            <div id="totalPriceUpdate-error" class="invalid-feedback"></div>
+          </div>
+          <div class="mb-3">
+            <label for="memo" class="form-label">Memo</label>
+            <textarea name="memo" class="form-control" id="memoUpdate" rows="3" placeholder="Memo"></textarea>
+            <div id="memoUpdate-error" class="invalid-feedback"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" form="form-update" class="btn btn-primary">Save changes</button>
       </div>
     </div>
   </div>
@@ -136,14 +182,14 @@
       tbody.innerHTML = list.map((u, i) => `
         <tr>
           <td>${i + 1}</td>
-          <td>${u.date}</td>
-          <td>${u.commodityName} ${u.commodityUnit}</td>
-          <td>${u.qty}</td>
+          <td>${formatDateToDDMMYYYY(u.date)}</td>
+          <td>${u.commodityName}</td>
+          <td>${u.qty} ${u.commodityUnit}</td>
           <td>Rp. ${Number(u.totalPrice / u.qty).toLocaleString("id-ID")}</td>
           <td>Rp. ${Number(u.totalPrice).toLocaleString("id-ID")}</td>
           <td class="d-flex gap-2">
-            <button class="btn btn-sm btn-warning" data-id="${u.id}">Update</button>
-            <button class="btn btn-sm btn-danger" data-id="${u.id}">Delete</button>
+            <button class="btn btn-sm btn-warning btn-update" data-id="${u.id}">Update</button>
+            <button class="btn btn-sm btn-danger btn-delete" data-id="${u.id}">Delete</button>
           </td>
         </tr>
       `).join("");
@@ -227,4 +273,75 @@
       openSwal("Failed to add buy history", "Internal Server Error", "error");
     }
   })
+
+  tbody.addEventListener('click', async (e) => {
+    // update buy history
+    const updateBtn = e.target.closest('.btn-update');
+    if (updateBtn) {
+      e.preventDefault();
+      openModal("#modal-update");
+
+      const id = updateBtn.dataset.id;
+      const [getOneBuyHistory, getCommodities] = await Promise.all([
+        buyHistory.getOneBuyHistory(id),
+        commodity.getCommodityActiveList()
+      ]);
+
+      const select = document.querySelector("#commodityIdUpdate");
+      select.innerHTML = "";
+      getCommodities.forEach((c) => {
+        const option = document.createElement("option");
+        option.value = c.id;
+        option.textContent = c.name;
+        select.appendChild(option);
+      });
+
+      // assign value
+      document.querySelector("#commodityIdUpdate").value = getOneBuyHistory.commodityId;
+      document.querySelector("#dateUpdate").value = getOneBuyHistory.date;
+      document.querySelector("#qtyUpdate").value = getOneBuyHistory.qty;
+      document.querySelector("#totalPriceUpdate").value = getOneBuyHistory.totalPrice;
+      attachCurrencyFormatter("#totalPriceUpdate");
+
+      const formUpdate = document.querySelector("#form-update");
+      formUpdate.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const date = document.querySelector("#dateUpdate").value;
+        const formattedDate = formatDateToDDMMYYYY(date);
+        const payloadToSend = {
+          id,
+          commodityId: document.querySelector("#commodityIdUpdate").value,
+          date: formattedDate,
+          qty: getNumberRawValue("#qtyUpdate"),
+          totalPrice: getNumberRawValue("#totalPriceUpdate"),
+        }
+
+        const response = await buyHistory.updateBuyHistory(payloadToSend);
+        if(response?.status === 422) {
+          const errors = response.data.errors;
+          applyErrors(formUpdate, errors, { suffix: "Update" });
+        } else if(response?.status === 404) {
+          clearErrors(formUpdate);
+          openSwal("Failed to update buy history", response.data.message, "error");
+        } else if(response?.status === 200) {
+          clearErrors(formUpdate);
+          openSwal("Success", response.data.message, "success");
+          await loadBuyHistory();
+        } else {
+          clearErrors(formUpdate);
+          openSwal("Failed to update buy history", "Internal Server Error", "error");
+        }
+      }, { once: true });
+
+      return;
+    }
+
+    // delete buy history
+    const deleteBtn = e.target.closest('.btn-delete');
+    if (deleteBtn) {
+      e.preventDefault();
+      console.log('Delete id:', deleteBtn.dataset.id);
+    }
+  });
 </script>

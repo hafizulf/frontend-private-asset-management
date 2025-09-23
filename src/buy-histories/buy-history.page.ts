@@ -1,4 +1,5 @@
 import http from "@/assets/javascript/http";
+import { AxiosResponse } from "axios";
 
 export type IBuyHistory = {
   id?: string;
@@ -28,12 +29,32 @@ const getBuyHistoryList = async (): Promise<IBuyHistoryView[]> => {
   }
 };
 
-const saveBuyHistory = async (payload: IBuyHistory): Promise<any> => {
+const saveBuyHistory = async (payload: IBuyHistory): Promise<AxiosResponse> => {
   try {
     const res = await http.post(`${prefix}`, payload);
     return res;
   } catch (error: any) {
-    console.log("Error", error);
+    return error.response;
+  }
+}
+
+const getOneBuyHistory = async (
+  id: string
+): Promise<IBuyHistoryView> => {
+  try {
+    const res = await http.get(`${prefix}/${id}`);
+    const payload = res?.data;
+    return payload?.data;
+  } catch (error: any) {
+    return error.response;
+  }
+}
+
+const updateBuyHistory = async (payload: IBuyHistory): Promise<AxiosResponse> => {
+  try {
+    const res = await http.put(`${prefix}/${payload.id}`, payload);
+    return res;
+  } catch (error: any) {
     return error.response;
   }
 }
@@ -41,4 +62,6 @@ const saveBuyHistory = async (payload: IBuyHistory): Promise<any> => {
 export default {
   getBuyHistoryList,
   saveBuyHistory,
+  getOneBuyHistory,
+  updateBuyHistory,
 }
