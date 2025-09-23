@@ -32,8 +32,9 @@
                                                     <th>Tanggal</th>
                                                     <th>Komoditi</th>
                                                     <th>Jumlah</th>
-                                                    <th>Harga Satuan (Rp)</th>
-                                                    <th>Harga Total (Rp)</th>
+                                                    <th>Harga Satuan</th>
+                                                    <th>Harga Total</th>
+                                                    <th>#</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="buy-history-tbody">
@@ -140,6 +141,10 @@
           <td>${u.qty}</td>
           <td>Rp. ${Number(u.totalPrice / u.qty).toLocaleString("id-ID")}</td>
           <td>Rp. ${Number(u.totalPrice).toLocaleString("id-ID")}</td>
+          <td class="d-flex gap-2">
+            <button class="btn btn-sm btn-warning" data-id="${u.id}">Update</button>
+            <button class="btn btn-sm btn-danger" data-id="${u.id}">Delete</button>
+          </td>
         </tr>
       `).join("");
 
@@ -152,7 +157,9 @@
     }
   }
 
-  await loadBuyHistory();
+  (async () => {
+    await loadBuyHistory();
+  })();
 
   // save buy history
   const btnTambah = document.querySelector("#add-buy-history");
