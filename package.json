@@ -4,7 +4,11 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx vite dev",
+    "build": "npx vite build",
+    "preview": "npx vite preview",
+    "start": "npx vite build && npx vite preview"
   },
   "keywords": [],
   "author": "",

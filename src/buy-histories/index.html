@@ -75,7 +75,7 @@
           </div>
           <div class="mb-3">
             <label for="qty" class="form-label">Jumlah</label>
-            <input type="number" name="qty" class="form-control" id="qty" placeholder="0" min="1">
+            <input type="text" id="qty" name="qty" class="form-control" inputmode="decimal" pattern="^\d{1,3}(\.\d{3})*(,\d+)?$|^\d+(,\d+)?$" placeholder="0">
             <div id="qty-error" class="invalid-feedback"></div>
           </div>
           <div class="mb-3">
@@ -121,7 +121,7 @@
           </div>
           <div class="mb-3">
             <label for="qty" class="form-label">Jumlah</label>
-            <input type="number" name="qty" class="form-control" id="qtyUpdate" placeholder="0" min="1">
+            <input type="text" name="qty" class="form-control" id="qtyUpdate" inputmode="decimal" pattern="^\d{1,3}(\.\d{3})*(,\d+)?$|^\d+(,\d+)?$" placeholder="0">
             <div id="qtyUpdate-error" class="invalid-feedback"></div>
           </div>
           <div class="mb-3">
@@ -155,7 +155,7 @@
     confirmDialogModal,
   } from "../components/modal";
   import { 
-    attachCurrencyFormatter, 
+    attachIdNumberFormatter,
     getNumberRawValue, 
     formatDateToDDMMYYYY
   } from "../helpers/formatter.ts";
@@ -166,6 +166,12 @@
     showFieldError 
   } from "@/helpers/form-validation";
 
+  // formatting
+  attachIdNumberFormatter("#qty");
+  attachIdNumberFormatter("#qtyUpdate");
+  attachIdNumberFormatter("#totalPrice");
+  attachIdNumberFormatter("#totalPriceUpdate");
+
   const tbody = document.querySelector("#buy-history-tbody");
 
   async function loadBuyHistory() {
@@ -175,7 +181,7 @@
       if (!Array.isArray(list) || list.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="4" class="text-center text-muted py-4">0 buy history</td>
+            <td colspan="7" class="text-center text-muted py-4">0 buy history</td>
           </tr>`;
         return;
       }
@@ -186,8 +192,8 @@
           <td>${formatDateToDDMMYYYY(u.date)}</td>
           <td>${u.commodityName}</td>
           <td>${u.qty} ${u.commodityUnit}</td>
-          <td>Rp. ${Number(u.totalPrice / u.qty).toLocaleString("id-ID")}</td>
-          <td>Rp. ${Number(u.totalPrice).toLocaleString("id-ID")}</td>
+          <td>Rp. ${(u.totalPrice / u.qty).toLocaleString("id-ID", { minimumFractionDigits: 2 })}</td>
+          <td>Rp. ${u.totalPrice.toLocaleString("id-ID", { minimumFractionDigits: 2 })}</td>  
           <td class="d-flex gap-2">
             <button class="btn btn-sm btn-warning btn-update" data-id="${u.id}">Update</button>
             <button class="btn btn-sm btn-danger btn-delete" data-id="${u.id}">Delete</button>
@@ -199,7 +205,7 @@
       console.error(err);
       tbody.innerHTML = `
         <tr>
-          <td colspan="4" class="text-center text-danger py-4">Failed to load buy history</td>
+          <td colspan="7" class="text-center text-danger py-4">Failed to load buy history</td>
         </tr>`;
     }
   }
@@ -225,15 +231,7 @@
 
     openModal("#modal-tambah");
 
-    const qtyInput = document.querySelector("#qty");
-    qtyInput.addEventListener("input", (e) => {
-      let value = parseInt(e.target.value, 10);
-      if (isNaN(value) || value < 1) {
-        e.target.value = "";
-      }
-    });
-
-    attachCurrencyFormatter("#totalPrice");
+    attachIdNumberFormatter("#totalPrice");
   });
 
   const formTambah = document.querySelector("#form-tambah");
@@ -275,17 +273,23 @@
     }
   })
 
-  tbody.addEventListener('click', async (e) => {
-    // update buy history
-    const updateBtn = e.target.closest('.btn-update');
+  const formUpdate = document.querySelector("#form-update");
+
+  tbody.addEventListener("click", async (e) => {
+
+    // ===== UPDATE =====
+    const updateBtn = e.target.closest(".btn-update");
     if (updateBtn) {
       e.preventDefault();
-      openModal("#modal-update");
 
       const id = updateBtn.dataset.id;
+      formUpdate.dataset.id = id;
+
+      openModal("#modal-update");
+
       const [getOneBuyHistory, getCommodities] = await Promise.all([
         buyHistory.getOneBuyHistory(id),
-        commodity.getCommodityActiveList()
+        commodity.getCommodityActiveList(),
       ]);
 
       const select = document.querySelector("#commodityIdUpdate");
@@ -297,49 +301,18 @@
         select.appendChild(option);
       });
 
-      // assign value
-      document.querySelector("#commodityIdUpdate").value = getOneBuyHistory.commodityId;
+      // assign values
+      select.value = getOneBuyHistory.commodityId;
       document.querySelector("#dateUpdate").value = getOneBuyHistory.date;
-      document.querySelector("#qtyUpdate").value = getOneBuyHistory.qty;
-      document.querySelector("#totalPriceUpdate").value = getOneBuyHistory.totalPrice;
-      attachCurrencyFormatter("#totalPriceUpdate");
-
-      const formUpdate = document.querySelector("#form-update");
-      formUpdate.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const date = document.querySelector("#dateUpdate").value;
-        const formattedDate = formatDateToDDMMYYYY(date);
-        const payloadToSend = {
-          id,
-          commodityId: document.querySelector("#commodityIdUpdate").value,
-          date: formattedDate,
-          qty: getNumberRawValue("#qtyUpdate"),
-          totalPrice: getNumberRawValue("#totalPriceUpdate"),
-        }
-
-        const response = await buyHistory.updateBuyHistory(payloadToSend);
-        if(response?.status === 422) {
-          const errors = response.data.errors;
-          applyErrors(formUpdate, errors, { suffix: "Update" });
-        } else if(response?.status === 404) {
-          clearErrors(formUpdate);
-          openSwal("Failed to update buy history", response.data.message, "error");
-        } else if(response?.status === 200) {
-          clearErrors(formUpdate);
-          openSwal("Success", response.data.message, "success");
-          await loadBuyHistory();
-        } else {
-          clearErrors(formUpdate);
-          openSwal("Failed to update buy history", "Internal Server Error", "error");
-        }
-      }, { once: true });
+      document.querySelector("#qtyUpdate").value = getOneBuyHistory.qty.toLocaleString("id-ID");
+      document.querySelector("#totalPriceUpdate").value = getOneBuyHistory.totalPrice.toLocaleString("id-ID");
+      document.querySelector("#memoUpdate").value = getOneBuyHistory.memo;
 
       return;
     }
 
-    // delete buy history
-    const deleteBtn = e.target.closest('.btn-delete');
+    // ===== DELETE =====
+    const deleteBtn = e.target.closest(".btn-delete");
     if (deleteBtn) {
       e.preventDefault();
 
@@ -351,14 +324,49 @@
 
       const id = deleteBtn.dataset.id;
       const response = await buyHistory.deleteBuyHistory(id);
-      if (response?.status === 404) {
-        openSwal("Failed to delete buy history", response.data.message, "error");
-      } else if (response?.status === 200) {
+
+      if (response?.status === 200) {
         openSwal("Success", response.data.message, "success");
         await loadBuyHistory();
       } else {
-        openSwal("Failed to delete buy history", "Internal Server Error", "error");
+        openSwal("Failed", "Delete failed", "error");
       }
+
+      return;
+    }
+  });
+
+  formUpdate.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const id = formUpdate.dataset.id;
+    if (!id) return; // safety guard
+
+    const date = document.querySelector("#dateUpdate").value;
+
+    const payloadToSend = {
+      id,
+      commodityId: document.querySelector("#commodityIdUpdate").value,
+      date: formatDateToDDMMYYYY(date),
+      qty: getNumberRawValue("#qtyUpdate"),
+      totalPrice: getNumberRawValue("#totalPriceUpdate"),
+      memo: document.querySelector("#memoUpdate").value,
+    };
+
+    const response = await buyHistory.updateBuyHistory(payloadToSend);
+
+    if (response?.status === 422) {
+      applyErrors(formUpdate, response.data.errors, { suffix: "Update" });
+    } else if (response?.status === 404) {
+      clearErrors(formUpdate);
+      openSwal("Failed", response.data.message, "error");
+    } else if (response?.status === 200) {
+      clearErrors(formUpdate);
+      openSwal("Success", response.data.message, "success");
+      await loadBuyHistory();
+    } else {
+      clearErrors(formUpdate);
+      openSwal("Failed", "Internal Server Error", "error");
     }
   });
 </script>
