@@ -47,7 +47,7 @@
 </div>
 
 <!-- form -->
- <div class="modal fade" id="modal-tambah" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade" id="modal-tambah" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -56,7 +56,25 @@
       </div>
       <div class="modal-body">
         <form id="form-tambah" method="post">
-
+          <div class="mb-3">
+              <label for="name" class="form-label">Nama Komoditas</label>
+              <input type="text" name="name" class="form-control" id="name" placeholder="Cth. Emas...">
+              <div id="name-error" class="invalid-feedback"></div>
+          </div>
+          <div class="mb-3">
+              <label for="unit" class="form-label">Unit</label>
+              <input type="text" name="unit" class="form-control" id="unit" placeholder="Cth. Gram">
+              <div id="unit-error" class="invalid-feedback"></div>
+          </div>
+          <div class="form-check form-switch switch-float">
+            <label class="form-check-label" for="isActive">Inactive</label>
+            <input
+              class="form-check-input"
+              type="checkbox"
+              name="isActive"
+              id="isActive"
+            >
+          </div>
         </form>
       </div>
       <div class="modal-footer">
@@ -71,6 +89,8 @@
 
 <script type="module">
   import commodity from "./commodity.page.ts";
+  import { openModal } from "../components/modal";
+  import { createToggle } from "../components/toggle";
 
   const tbody = document.querySelector("#commodity-tbody");
 
@@ -92,8 +112,10 @@
         <td>${item.unit}</td>
         <td>${item.isActive ? "Active" : "Inactive"}</td>
         <td class="d-flex gap-2">
-          <button class="btn btn-sm btn-warning btn-update" data-id="${item.id}">Update</button>
-          <button class="btn btn-sm btn-danger btn-delete" data-id="${item.id}">Delete</button>
+          <div class="btn-group" role="group" aria-label="Data actions">
+            <button class="btn btn-sm btn-success btn-update" data-id="${item.id}">Update</button>
+            <button class="btn btn-sm btn-danger btn-delete" data-id="${item.id}">Delete</button>
+          </div>
         </td>
       </tr>
     `).join("");
@@ -103,5 +125,20 @@
     await loadCommodity();
   })();
 
+  // Create toggle ONCE (after DOM is ready)
+  const addToggleFormTambah = createToggle({
+    checkbox: document.querySelector("#isActive"),
+    label: document.querySelector('label[for="isActive"]'),
+  });
+
+  //
+  const btnTambah = document.querySelector("#add-commodity");
+  btnTambah.addEventListener("click", (e) => {
+    e.preventDefault();
+    openModal("#modal-tambah");
+
+    // Optional: reset state if needed
+    addToggleFormTambah.value = false;
+  });
 
 </script>
