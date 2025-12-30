@@ -21,7 +21,19 @@ const getCommodityActiveList = async (): Promise<ICommodity[]> => {
   }
 };
 
+const getCommodity = async (): Promise<ICommodity[]> => {
+  try {
+    const res = await http.get(`${prefix}`);
+    const payload = res?.data;
+    return Array.isArray(payload?.data) ? payload.data : [];
+  } catch (error) {
+    console.log("Error", error);
+    return [];
+  }
+};
+
 
 export default {
   getCommodityActiveList,
+  getCommodity,
 }

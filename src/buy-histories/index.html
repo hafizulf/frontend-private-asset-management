@@ -75,7 +75,7 @@
           </div>
           <div class="mb-3">
             <label for="qty" class="form-label">Jumlah</label>
-            <input type="text" id="qty" name="qty" class="form-control" inputmode="decimal" pattern="^\d{1,3}(\.\d{3})*(,\d+)?$|^\d+(,\d+)?$" placeholder="0">
+            <input type="text" id="qty" name="qty" class="form-control" inputmode="decimal" pattern="^\d+([.,]\d+)?$" placeholder="0">
             <div id="qty-error" class="invalid-feedback"></div>
           </div>
           <div class="mb-3">
@@ -121,7 +121,7 @@
           </div>
           <div class="mb-3">
             <label for="qty" class="form-label">Jumlah</label>
-            <input type="text" name="qty" class="form-control" id="qtyUpdate" inputmode="decimal" pattern="^\d{1,3}(\.\d{3})*(,\d+)?$|^\d+(,\d+)?$" placeholder="0">
+            <input type="text" name="qty" class="form-control" id="qtyUpdate" inputmode="decimal" pattern="^\d+([.,]\d+)?$" placeholder="0">
             <div id="qtyUpdate-error" class="invalid-feedback"></div>
           </div>
           <div class="mb-3">
@@ -148,7 +148,7 @@
 
 <script type="module">
   import buyHistory from "./buy-history.page";
-  import commodity from "../commodity/commodity.page";
+  import commodity from "../commodities/commodity.page";
   import { 
     openModal,
     openSwal,
@@ -156,6 +156,7 @@
   } from "../components/modal";
   import { 
     attachIdNumberFormatter,
+    formatIDR,
     getNumberRawValue, 
     formatDateToDDMMYYYY
   } from "../helpers/formatter.ts";
@@ -186,20 +187,27 @@
         return;
       }
 
-      tbody.innerHTML = list.map((u, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${formatDateToDDMMYYYY(u.date)}</td>
-          <td>${u.commodityName}</td>
-          <td>${u.qty} ${u.commodityUnit}</td>
-          <td>Rp. ${(u.totalPrice / u.qty).toLocaleString("id-ID", { minimumFractionDigits: 2 })}</td>
-          <td>Rp. ${u.totalPrice.toLocaleString("id-ID", { minimumFractionDigits: 2 })}</td>  
-          <td class="d-flex gap-2">
-            <button class="btn btn-sm btn-warning btn-update" data-id="${u.id}">Update</button>
-            <button class="btn btn-sm btn-danger btn-delete" data-id="${u.id}">Delete</button>
-          </td>
-        </tr>
-      `).join("");
+      tbody.innerHTML = list.map((u, i) => {
+        const qty = Number(u.qty);
+        const totalPrice = Number(u.totalPrice);
+
+        return `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${formatDateToDDMMYYYY(u.date)}</td>
+            <td>${u.commodityName}</td>
+            <td>${qty.toLocaleString("id-ID")} ${u.commodityUnit}</td>
+            <td>Rp. ${formatIDR(totalPrice / qty)}</td>
+            <td>Rp. ${formatIDR(totalPrice)}</td>
+            <td class="d-flex gap-2">
+              <div class="btn-group" role="group" aria-label="Data actions">
+                <button class="btn btn-sm btn-success btn-update" data-id="${u.id}">Update</button>
+                <button class="btn btn-sm btn-danger btn-delete" data-id="${u.id}">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
 
     } catch (err) {
       console.error(err);
@@ -304,8 +312,8 @@
       // assign values
       select.value = getOneBuyHistory.commodityId;
       document.querySelector("#dateUpdate").value = getOneBuyHistory.date;
-      document.querySelector("#qtyUpdate").value = getOneBuyHistory.qty.toLocaleString("id-ID");
-      document.querySelector("#totalPriceUpdate").value = getOneBuyHistory.totalPrice.toLocaleString("id-ID");
+      document.querySelector("#qtyUpdate").value = getOneBuyHistory.qty;
+      document.querySelector("#totalPriceUpdate").value = getOneBuyHistory.totalPrice;
       document.querySelector("#memoUpdate").value = getOneBuyHistory.memo;
 
       return;

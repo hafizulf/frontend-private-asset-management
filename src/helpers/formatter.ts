@@ -37,12 +37,15 @@ export function getNumberRawValue(selector: string): number {
   const input = document.querySelector<HTMLInputElement>(selector);
   if (!input || !input.value) return 0;
 
-  const normalized = input.value
-    .replace(/\./g, "")   // remove thousand separators
-    .replace(/,/g, ".");  // convert decimal comma
-
-  const value = Number(normalized);
+  const value = Number(input.value);
   return Number.isFinite(value) ? value : 0;
+}
+
+export function formatIDR(value: number | string): string {
+  return Number(value).toLocaleString("id-ID", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
 }
 
 export function formatDateToDDMMYYYY(dateStr: string): string {
