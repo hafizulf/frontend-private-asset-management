@@ -58,23 +58,21 @@
         <form id="form-tambah" method="post">
           <div class="mb-3">
               <label for="name" class="form-label">Nama Komoditas</label>
-              <input type="text" name="name" class="form-control" id="name" placeholder="Cth. Emas...">
+              <input type="text" name="name" class="form-control" id="name" placeholder="cth. Emas...">
               <div id="name-error" class="invalid-feedback"></div>
           </div>
           <div class="mb-3">
               <label for="unit" class="form-label">Unit</label>
-              <input type="text" name="unit" class="form-control" id="unit" placeholder="Cth. Gram">
+              <input type="text" name="unit" class="form-control" id="unit" placeholder="cth. Gram...">
               <div id="unit-error" class="invalid-feedback"></div>
           </div>
           <div class="form-check form-switch switch-float">
-            <label class="form-check-label" for="isActive">Inactive</label>
-            <input
-              class="form-check-input"
-              type="checkbox"
-              name="isActive"
-              id="isActive"
-            >
+              <label class="form-check-label" for="isActive">Inactive</label>
+              <input class="form-check-input" type="checkbox"  name="isActive" id="isActive">
           </div>
+            <small class="text-muted text-info">
+              *Active items will be listing in transaction history
+            </small>
         </form>
       </div>
       <div class="modal-footer">
@@ -89,8 +87,10 @@
 
 <script type="module">
   import commodity from "./commodity.page.ts";
-  import { openModal } from "../components/modal";
+  import { openModal, openSwal } from "../components/modal";
   import { createToggle } from "../components/toggle";
+  import { capitalizeWords } from "../helpers/formatter";
+  import { applyErrors, clearFieldError, clearErrors } from "../helpers/form-validation";
 
   const tbody = document.querySelector("#commodity-tbody");
 
@@ -131,7 +131,7 @@
     label: document.querySelector('label[for="isActive"]'),
   });
 
-  //
+  // save commodity
   const btnTambah = document.querySelector("#add-commodity");
   btnTambah.addEventListener("click", (e) => {
     e.preventDefault();
@@ -140,5 +140,43 @@
     // Optional: reset state if needed
     addToggleFormTambah.value = false;
   });
+
+  const formTambah = document.querySelector("#form-tambah");
+  formTambah.querySelectorAll(".form-control").forEach((el) => {
+    el.addEventListener("input", () => {
+      clearFieldError(formTambah, el.id);
+    });
+    el.addEventListener("change", () => {
+      clearFieldError(formTambah, el.id);
+    });
+  });
+
+  formTambah.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const payloadToSend = {
+      name: capitalizeWords(document.querySelector("#name").value),
+      unit: document.querySelector("#unit").value,
+      isActive: addToggleFormTambah.value,
+    }
+
+    const response = await commodity.storeCommodity(payloadToSend);
+    
+    if(response?.status === 422) {
+      const errors = response.data.errors;
+      applyErrors(formTambah, errors);
+    } else if(response?.status === 404) {
+      clearErrors(formTambah);
+      openSwal("Failed to add commodity", response.data.message, "error");
+    } else if(response?.status === 201) {
+      clearErrors(formTambah);
+      openSwal("Success", response.data.message, "success");
+
+      await loadCommodity();
+    } else {
+      clearErrors(formTambah);
+      openSwal("Failed to add commodity", "Internal Server Error", "error");
+    }
+  })
 
 </script>

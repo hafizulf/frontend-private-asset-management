@@ -1,4 +1,5 @@
 import http from "@/assets/javascript/http";
+import { AxiosError, AxiosResponse } from "axios";
 
 export type ICommodity = {
   id?: string;
@@ -32,8 +33,19 @@ const getCommodity = async (): Promise<ICommodity[]> => {
   }
 };
 
+const storeCommodity = async (payload: ICommodity): Promise<AxiosResponse> => {
+  try {
+    const res = await http.post(`${prefix}`, payload);
+    return res;
+  } catch (error) {
+    const err = error as AxiosError;
+    return err.response as AxiosResponse;
+  }
+}
+
 
 export default {
   getCommodityActiveList,
   getCommodity,
+  storeCommodity,
 }

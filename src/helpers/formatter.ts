@@ -54,3 +54,9 @@ export function formatDateToDDMMYYYY(dateStr: string): string {
   if (!year || !month || !day) return "";
   return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
 }
+
+export function capitalizeWords(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/\b\p{L}/gu, (char) => char.toUpperCase());
+}
