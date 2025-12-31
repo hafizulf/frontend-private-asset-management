@@ -83,11 +83,47 @@
   </div>
 </div>
 
+<div class="modal fade" id="modal-update" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Update Komoditas</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-update" method="post">
+          <div class="mb-3">
+              <label for="name" class="form-label">Nama Komoditas</label>
+              <input type="text" name="name" class="form-control" id="nameUpdate">
+              <div id="name-error" class="invalid-feedback"></div>
+          </div>
+          <div class="mb-3">
+              <label for="unit" class="form-label">Unit</label>
+              <input type="text" name="unit" class="form-control" id="unitUpdate">
+              <div id="unit-error" class="invalid-feedback"></div>
+          </div>
+          <div class="form-check form-switch switch-float">
+              <label class="form-check-label" for="isActive">Inactive</label>
+              <input class="form-check-input" type="checkbox"  name="isActive" id="isActiveUpdate">
+          </div>
+            <small class="text-muted text-info">
+              *Active items will be listing in transaction history
+            </small>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" form="form-update" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {{> footer}}
 
 <script type="module">
   import commodity from "./commodity.page.ts";
-  import { openModal, openSwal } from "../components/modal";
+  import { openModal, openSwal, confirmDialogModal } from "../components/modal";
   import { createToggle } from "../components/toggle";
   import { capitalizeWords } from "../helpers/formatter";
   import { applyErrors, clearFieldError, clearErrors } from "../helpers/form-validation";
@@ -179,4 +215,80 @@
     }
   })
 
+  const formUpdate = document.querySelector("#form-update");
+  tbody.addEventListener("click", async (e) => {
+    const updateBtn = e.target.closest(".btn-update");
+    if (updateBtn) {
+      e.preventDefault();
+
+      const id = updateBtn.dataset.id;
+      formUpdate.dataset.id = id;
+
+      openModal("#modal-update");
+
+      const dataCommodity = await commodity.getOneCommodity(id);
+
+      document.querySelector("#nameUpdate").value = dataCommodity.name;
+      document.querySelector("#unitUpdate").value = dataCommodity.unit;
+      const checkbox = document.querySelector('#isActiveUpdate');
+      checkbox.checked = Boolean(dataCommodity.isActive);
+
+      return;
+    }
+
+    const deleteBtn = e.target.closest(".btn-delete");
+    if (deleteBtn) {
+      e.preventDefault();
+
+      const ok = await confirmDialogModal(
+        "Delete this data?",
+        "This action cannot be undone."
+      );
+      if (!ok) return;
+
+      const id = deleteBtn.dataset.id;
+      const response = await commodity.deleteCommodity(id);
+
+      if (response?.status === 200) {
+        openSwal("Success", response.data.message, "success");
+        await loadCommodity();
+      } else {
+        openSwal("Failed", "Delete failed", "error");
+      }
+
+      return;
+    }
+  });
+
+  formUpdate.addEventListener("submit", async (e) => {
+    console.log("masuk nih");
+    e.preventDefault();
+
+    const id = formUpdate.dataset.id;
+    console.log("id", id);
+    if (!id) return;
+
+    const payloadToSend = {
+      id,
+      name: document.querySelector("#nameUpdate").value,
+      unit: document.querySelector("#unitUpdate").value,
+      isActive: document.querySelector('#isActiveUpdate').checked,
+    };
+
+    const response = await commodity.updateCommodity(payloadToSend);
+
+    if (response?.status === 422) {
+      applyErrors(formUpdate, response.data.errors, { suffix: "Update" });
+    } else if (response?.status >= 400 && response?.status < 500) {
+      clearErrors(formUpdate);
+      openSwal("Failed", response.data.message, "error");
+    } else if (response?.status === 200) {
+      clearErrors(formUpdate);
+      openSwal("Success", response.data.message, "success");
+      await loadCommodity();
+    } else {
+      clearErrors(formUpdate);
+      openSwal("Failed", "Internal Server Error", "error");
+    }
+  });
 </script>

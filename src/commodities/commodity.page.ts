@@ -43,9 +43,43 @@ const storeCommodity = async (payload: ICommodity): Promise<AxiosResponse> => {
   }
 }
 
+const deleteCommodity = async (id: string): Promise<AxiosResponse> => {
+  try {
+    const res = await http.delete(`${prefix}/${id}`);
+    return res;
+  } catch (error) {
+    const err = error as AxiosError;
+    return err.response as AxiosResponse;
+  }
+}
+
+const getOneCommodity = async (id: string): Promise<AxiosResponse> => {
+  try {
+    const res = await http.get(`${prefix}/${id}`);
+    const payload = res?.data;
+    return payload?.data;
+  } catch (error) {
+    const err = error as AxiosError;
+    return err.response as AxiosResponse;
+  }
+}
+
+const updateCommodity = async (payload: ICommodity): Promise<AxiosResponse> => {
+  try {
+    const res = await http.put(`${prefix}/${payload.id}`, payload);
+    return res;
+  } catch (error) {
+    const err = error as AxiosError;
+    return err.response as AxiosResponse;
+  }
+}
+
 
 export default {
   getCommodityActiveList,
   getCommodity,
   storeCommodity,
+  deleteCommodity,
+  getOneCommodity,
+  updateCommodity
 }
