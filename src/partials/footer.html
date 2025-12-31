@@ -9,13 +9,30 @@
       import { clearErrors } from "@/helpers/form-validation";
 
       document.querySelectorAll('.modal [data-bs-dismiss="modal"]').forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const modal = btn.closest(".modal");
-        const form = modal?.querySelector("form");
-        if (form) {
-          clearErrors(form);
-          form.reset();
+        btn.addEventListener("click", () => {
+          const modal = btn.closest(".modal");
+          const form = modal?.querySelector("form");
+          if (form) {
+            clearErrors(form);
+            form.reset();
+          }
+        });
+      });
+
+      // sidebar active
+      const normalizePath = (path) => path.endsWith('/') && path !== '/' ? path.slice(0, -1) : path;
+      const currentPath = normalizePath(window.location.pathname);
+
+      document.querySelectorAll('.sidebar-item').forEach((item) => {
+        const link = item.querySelector('.sidebar-link');
+        if (!link) return;
+
+        const linkPath = normalizePath(new URL(link.href).pathname);
+
+        if (linkPath === currentPath) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
         }
       });
-    });
     </script>
