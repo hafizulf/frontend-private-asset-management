@@ -1,5 +1,5 @@
 import http from "@/assets/javascript/http";
-import { AxiosResponse } from "axios";
+import { AxiosError, AxiosResponse } from "axios";
 
 export type IBuyHistory = {
   id?: string;
@@ -12,20 +12,15 @@ export type IBuyHistory = {
   updatedAt?: Date;
 }
 
-export interface IBuyHistoryView extends IBuyHistory {
-  commodityName: string;
-  commodityUnit: string;
-}
-
 const prefix = "/buy-histories";
-const getBuyHistoryList = async (): Promise<IBuyHistoryView[]> => {
+const getBuyHistoryList = async (): Promise<AxiosResponse | []> => {
   try {
     const res = await http.get(`${prefix}`);
     const payload = res?.data;
     return Array.isArray(payload?.data) ? payload.data : [];
   } catch (error) {
-    console.log("Error", error);
-    return [];
+    const err = error as AxiosError;
+    return err.response as AxiosResponse;
   }
 };
 
@@ -40,7 +35,7 @@ const saveBuyHistory = async (payload: IBuyHistory): Promise<AxiosResponse> => {
 
 const getOneBuyHistory = async (
   id: string
-): Promise<IBuyHistoryView> => {
+): Promise<AxiosResponse> => {
   try {
     const res = await http.get(`${prefix}/${id}`);
     const payload = res?.data;

@@ -11,25 +11,25 @@ export type ICommodity = {
 }
 
 const prefix = "/commodities";
-const getCommodityActiveList = async (): Promise<ICommodity[]> => {
+const getCommodityActiveList = async (): Promise<AxiosResponse | []> => {
   try {
     const res = await http.get(`${prefix}/active`);
     const payload = res?.data;
     return Array.isArray(payload?.data) ? payload.data : [];
   } catch (error) {
-    console.log("Error", error);
-    return [];
+    const err = error as AxiosError;
+    return err.response as AxiosResponse;
   }
 };
 
-const getCommodity = async (): Promise<ICommodity[]> => {
+const getCommodity = async (): Promise<AxiosResponse | []> => {
   try {
     const res = await http.get(`${prefix}`);
     const payload = res?.data;
     return Array.isArray(payload?.data) ? payload.data : [];
   } catch (error) {
-    console.log("Error", error);
-    return [];
+    const err = error as AxiosError;
+    return err.response as AxiosResponse;
   }
 };
 

@@ -125,6 +125,7 @@ export default defineConfig({
         login: path.resolve(__dirname, "src/auth/login/index.html"),
         user: path.resolve(__dirname, "src/user/index.html"),
         buyHistories: path.resolve(__dirname, "src/buy-histories/index.html"),
+        sellHistories: path.resolve(__dirname, "src/sell-histories/index.html"),
         commodities: path.resolve(__dirname, "src/commodities/index.html"),
         notFound: path.resolve(__dirname, "src/404.html"),
       },
@@ -139,6 +140,7 @@ export default defineConfig({
           '/index.html': 'Home Page',
           '/user/index.html': 'Daftar User',
           '/buy-histories/index.html': 'Riwayat Pembelian',
+          '/sell-histories/index.html': 'Riwayat Penjualan',
           '/commodities/index.html': 'Daftar Komoditas',
         };
         return {
