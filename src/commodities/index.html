@@ -265,11 +265,9 @@
   });
 
   formUpdate.addEventListener("submit", async (e) => {
-    console.log("masuk nih");
     e.preventDefault();
 
     const id = formUpdate.dataset.id;
-    console.log("id", id);
     if (!id) return;
 
     const payloadToSend = {

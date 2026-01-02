@@ -33,14 +33,6 @@ export function attachIdNumberFormatter(selector: string): void {
   });
 }
 
-export function getNumberRawValue(selector: string): number {
-  const input = document.querySelector<HTMLInputElement>(selector);
-  if (!input || !input.value) return 0;
-
-  const value = Number(input.value);
-  return Number.isFinite(value) ? value : 0;
-}
-
 export function formatIDR(value: number | string): string {
   return Number(value).toLocaleString("id-ID", {
     minimumFractionDigits: 2,
@@ -60,3 +52,53 @@ export function capitalizeWords(value: string): string {
     .toLowerCase()
     .replace(/\b\p{L}/gu, (char) => char.toUpperCase());
 }
+
+export function parseQty(selector: string): number | null {
+  const input = document.querySelector<HTMLInputElement>(selector);
+  if (!input) return null;
+
+  const raw = input.value.trim();
+  if (!raw) return null;
+
+  const cleaned = raw.replace(/[^\d.,-]/g, "");
+
+  const normalized = cleaned.includes(",")
+    ? cleaned.replace(/\./g, "").replace(/,/g, ".")
+    : cleaned; // keep dot as decimal if no comma
+
+  const value = Number(normalized);
+  return Number.isFinite(value) ? value : null;
+}
+
+export function parseIDRCurrency(selector: string): number | null {
+  const input = document.querySelector<HTMLInputElement>(selector);
+  if (!input) return null;
+
+  const raw = input.value.trim();
+  if (!raw) return null;
+
+  const cleaned = raw.replace(/[^\d.,-]/g, "");
+
+  const hasComma = cleaned.includes(",");
+  const hasDot = cleaned.includes(".");
+
+  let normalized = cleaned;
+
+  if (hasComma && hasDot) {
+    // "218.000,50" -> "218000.50"
+    normalized = cleaned.replace(/\./g, "").replace(/,/g, ".");
+  } else if (hasComma) {
+    // "218000,50" -> "218000.50"
+    normalized = cleaned.replace(/,/g, ".");
+  } else if (hasDot) {
+    // Decide thousands vs decimal:
+    // If groups after the first are all length 3 -> thousands ("218.000" / "1.234.567")
+    const parts = cleaned.split(".");
+    const looksLikeThousands = parts.length > 1 && parts.slice(1).every(p => p.length === 3);
+    normalized = looksLikeThousands ? parts.join("") : cleaned; // keep decimal like "0.09"
+  }
+
+  const value = Number(normalized);
+  return Number.isFinite(value) ? value : null;
+}
+

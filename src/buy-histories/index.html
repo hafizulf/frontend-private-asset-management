@@ -121,7 +121,7 @@
           </div>
           <div class="mb-3">
             <label for="qty" class="form-label">Jumlah</label>
-            <input type="text" name="qty" class="form-control" id="qtyUpdate" inputmode="decimal" pattern="^\d+([.,]\d+)?$" placeholder="0">
+            <input type="text" name="qty" class="form-control" id="qtyUpdate" inputmode="decimal" pattern="^\d+([.,]\d+)?$">
             <div id="qtyUpdate-error" class="invalid-feedback"></div>
           </div>
           <div class="mb-3">
@@ -157,7 +157,8 @@
   import { 
     attachIdNumberFormatter,
     formatIDR,
-    getNumberRawValue, 
+    parseQty,
+    parseIDRCurrency,
     formatDateToDDMMYYYY
   } from "../helpers/formatter.ts";
   import { 
@@ -260,17 +261,18 @@
     const payloadToSend = {
       commodityId: document.querySelector("#commodityId").value,
       date: formattedDate,
-      qty: getNumberRawValue("#qty"),
-      totalPrice: getNumberRawValue("#totalPrice"),
+      qty: parseQty("#qty"),
+      totalPrice: parseIDRCurrency("#totalPrice"),
+      memo: document.querySelector("#memo").value,
     }
 
     const response = await buyHistory.saveBuyHistory(payloadToSend);
     if(response?.status === 422) {
       const errors = response.data.errors;
       applyErrors(formTambah, errors);
-    } else if(response?.status === 404) {
+    } else if (response?.status >= 400 && response?.status < 500) {
       clearErrors(formTambah);
-      openSwal("Failed to add buy history", response.data.message, "error");
+      openSwal("Failed", response.data.message, "error");
     } else if(response?.status === 201) {
       clearErrors(formTambah);
       openSwal("Success", response.data.message, "success");
@@ -356,8 +358,8 @@
       id,
       commodityId: document.querySelector("#commodityIdUpdate").value,
       date: formatDateToDDMMYYYY(date),
-      qty: getNumberRawValue("#qtyUpdate"),
-      totalPrice: getNumberRawValue("#totalPriceUpdate"),
+      qty: parseQty("#qtyUpdate"),
+      totalPrice: parseIDRCurrency("#totalPriceUpdate"),
       memo: document.querySelector("#memoUpdate").value,
     };
 
@@ -365,7 +367,7 @@
 
     if (response?.status === 422) {
       applyErrors(formUpdate, response.data.errors, { suffix: "Update" });
-    } else if (response?.status === 404) {
+    } else if (response?.status >= 400 && response?.status < 500) {
       clearErrors(formUpdate);
       openSwal("Failed", response.data.message, "error");
     } else if (response?.status === 200) {

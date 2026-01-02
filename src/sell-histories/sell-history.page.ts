@@ -24,6 +24,16 @@ const getSellHistoryList = async (): Promise<AxiosResponse | []> => {
   }
 };
 
+const saveSellHistory = async (payload: ISellHistory): Promise<AxiosResponse> => {
+  try {
+    const res = await http.post(`${prefix}`, payload);
+    return res;
+  } catch (error: any) {
+    return error.response;
+  }
+}
+
 export default {
   getSellHistoryList,
+  saveSellHistory,
 }

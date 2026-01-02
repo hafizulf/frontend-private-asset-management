@@ -50,14 +50,75 @@
     </div>
 </div>
 
+<div class="modal fade" id="modal-tambah" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Tambah Riwayat</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-tambah" method="post">
+          <div class="mb-3">
+            <label for="commodityId" class="form-label">Komoditas</label>
+            <select class="form-select" name="commodityId" id="commodityId">
+              <option>Pilih Komoditas</option>
+            </select>
+            <div id="commodityId-error" class="invalid-feedback"></div>
+          </div>
+          <div class="mb-3">
+            <label for="date" class="form-label">Tanggal Pembelian</label>
+            <input type="date" name="date" class="form-control" id="date">
+            <div id="date-error" class="invalid-feedback"></div>
+          </div>
+          <div class="mb-3">
+            <label for="qty" class="form-label">Jumlah</label>
+            <input type="text" id="qty" name="qty" class="form-control" inputmode="decimal" pattern="^\d+([.,]\d+)?$" placeholder="0">
+            <div id="qty-error" class="invalid-feedback"></div>
+          </div>
+          <div class="mb-3">
+            <label for="totalPrice" class="form-label">Total Harga Keseluruhan</label>
+            <input type="text" name="totalPrice" class="form-control" id="totalPrice" placeholder="0">
+            <div id="totalPrice-error" class="invalid-feedback"></div>
+          </div>
+          <div class="mb-3">
+            <label for="memo" class="form-label">Memo</label>
+            <textarea name="memo" class="form-control" id="memo" rows="3" placeholder="Memo"></textarea>
+            <div id="memo-error" class="invalid-feedback"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" form="form-tambah" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {{> footer }}
 
 <script type="module">
   import sellHistory from "./sell-history.page";
+  import commodity from "../commodities/commodity.page";
   import { 
+    openModal,
+    openSwal,
+    confirmDialogModal,
+  } from "../components/modal";
+  import { 
+    attachIdNumberFormatter,
     formatIDR,
-    formatDateToDDMMYYYY
+    formatDateToDDMMYYYY,
+    parseQty,
+    parseIDRCurrency,
   } from "../helpers/formatter.ts";
+  import { 
+    clearErrors,
+    clearFieldError,
+    applyErrors,
+    showFieldError,
+  } from "@/helpers/form-validation";
 
   const tbody = document.querySelector("#sell-history-tbody");
   async function loadSellHistory() {
@@ -94,7 +155,6 @@
       }).join("");
 
     } catch (err) {
-      console.error(err);
       tbody.innerHTML = `
         <tr>
           <td colspan="7" class="text-center text-danger py-4">Failed to load sell history</td>
@@ -105,4 +165,63 @@
   (async () => {
     await loadSellHistory();
   })();
+
+  const btnTambah = document.querySelector("#add-sell-history");
+  btnTambah.addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    const commodities = await commodity.getCommodityActiveList();
+
+    const select = document.querySelector("#commodityId");
+    commodities.forEach((c) => {
+      const option = document.createElement("option");
+      option.value = c.id;
+      option.textContent = c.name;
+      select.appendChild(option);
+    });
+
+    openModal("#modal-tambah");
+
+    attachIdNumberFormatter("#totalPrice");
+  });
+
+  const formTambah = document.querySelector("#form-tambah");
+  formTambah.querySelectorAll(".form-control, .form-select").forEach((el) => {
+    el.addEventListener("input", () => {
+      clearFieldError(formTambah, el.id);
+    });
+    el.addEventListener("change", () => {
+      clearFieldError(formTambah, el.id);
+    });
+  });
+
+  formTambah.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const date = document.querySelector("#date").value;
+    const formattedDate = formatDateToDDMMYYYY(date);
+    const payloadToSend = {
+      commodityId: document.querySelector("#commodityId").value,
+      date: formattedDate,
+      qty: parseQty("#qty"),
+      totalPrice: parseIDRCurrency("#totalPrice"),
+      memo: document.querySelector("#memo").value
+    }
+
+    const response = await sellHistory.saveSellHistory(payloadToSend);
+    if(response?.status === 422) {
+      const errors = response.data.errors;
+      applyErrors(formTambah, errors);
+    } else if (response?.status >= 400 && response?.status < 500) {
+      clearErrors(formTambah);
+      openSwal("Failed", response.data.message, "error");
+    } else if(response?.status === 201) {
+      clearErrors(formTambah);
+      openSwal("Success", response.data.message, "success");
+      await loadSellHistory();
+    } else {
+      clearErrors(formTambah);
+      openSwal("Failed to add sell history", "Internal Server Error", "error");
+    }
+  })
 </script>
