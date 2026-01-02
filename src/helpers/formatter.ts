@@ -10,20 +10,16 @@ export function attachIdNumberFormatter(selector: string): void {
 
     // allow only ONE comma
     const parts = raw.split(",");
-    if (parts.length > 2) {
-      raw = parts[0] + "," + parts.slice(1).join("");
-    }
+    if (parts.length > 2) raw = parts[0] + "," + parts.slice(1).join("");
 
-    const [intPart, decPart] = raw.split(",");
+    let [intPart, decPart] = raw.split(",");
 
-    const formattedInt = intPart
-      ? Number(intPart).toLocaleString("id-ID")
-      : "";
+    if (decPart !== undefined) decPart = decPart.slice(0, 2);
+
+    const formattedInt = intPart ? Number(intPart).toLocaleString("id-ID") : "";
 
     const formatted =
-      decPart !== undefined
-        ? `${formattedInt},${decPart}`
-        : formattedInt;
+      decPart !== undefined ? `${formattedInt},${decPart}` : formattedInt;
 
     input.value = formatted;
 

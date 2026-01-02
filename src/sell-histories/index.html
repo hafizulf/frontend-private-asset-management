@@ -54,7 +54,7 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Tambah Riwayat</h5>
+        <h5 class="modal-title">Tambah Riwayat Penjualan</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -91,6 +91,52 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         <button type="submit" form="form-tambah" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modal-update" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Update Riwayat Penjualan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="form-update" method="post">
+          <div class="mb-3">
+            <label for="commodityId" class="form-label">Komoditas</label>
+            <select name="commodityId" class="form-select" id="commodityIdUpdate">
+              <option>Pilih Komoditas</option>
+            </select>
+            <div id="commodityIdUpdate-error" class="invalid-feedback"></div>
+          </div>
+          <div class="mb-3">
+            <label for="date" class="form-label">Tanggal Pembelian</label>
+            <input type="date" name="date" class="form-control" id="dateUpdate">
+            <div id="dateUpdate-error" class="invalid-feedback"></div>
+          </div>
+          <div class="mb-3">
+            <label for="qty" class="form-label">Jumlah</label>
+            <input type="text" name="qty" class="form-control" id="qtyUpdate" inputmode="decimal" pattern="^\d+([.,]\d+)?$" placeholder="0">
+            <div id="qtyUpdate-error" class="invalid-feedback"></div>
+          </div>
+          <div class="mb-3">
+            <label for="totalPrice" class="form-label">Total Harga Keseluruhan</label>
+            <input type="text" name="totalPrice" class="form-control" id="totalPriceUpdate" placeholder="0">
+            <div id="totalPriceUpdate-error" class="invalid-feedback"></div>
+          </div>
+          <div class="mb-3">
+            <label for="memo" class="form-label">Memo</label>
+            <textarea name="memo" class="form-control" id="memoUpdate" rows="3" placeholder="Memo"></textarea>
+            <div id="memoUpdate-error" class="invalid-feedback"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" form="form-update" class="btn btn-primary">Save changes</button>
       </div>
     </div>
   </div>
@@ -224,4 +270,98 @@
       openSwal("Failed to add sell history", "Internal Server Error", "error");
     }
   })
+
+  const formUpdate = document.querySelector("#form-update");
+  tbody.addEventListener("click", async (e) => {
+    const updateBtn = e.target.closest(".btn-update");
+    if (updateBtn) {
+      e.preventDefault();
+
+      const id = updateBtn.dataset.id;
+      formUpdate.dataset.id = id;
+
+      openModal("#modal-update");
+
+      const [getOneSellHistory, getCommodities] = await Promise.all([
+        sellHistory.getOneSellHistory(id),
+        commodity.getCommodityActiveList(),
+      ]);
+      const select = document.querySelector("#commodityIdUpdate");
+      select.innerHTML = "";
+      getCommodities.forEach((c) => {
+        const option = document.createElement("option");
+        option.value = c.id;
+        option.textContent = c.name;
+        select.appendChild(option);
+      });
+
+      attachIdNumberFormatter("#totalPriceUpdate");
+
+      // assign values
+      select.value = getOneSellHistory.commodityId;
+      document.querySelector("#dateUpdate").value = getOneSellHistory.date;
+      document.querySelector("#qtyUpdate").value = getOneSellHistory.qty;
+      document.querySelector("#totalPriceUpdate").value = getOneSellHistory.totalPrice;
+      document.querySelector("#memoUpdate").value = getOneSellHistory.memo;
+
+      return;
+    }
+
+    const deleteBtn = e.target.closest(".btn-delete");
+    if (deleteBtn) {
+      e.preventDefault();
+
+      const ok = await confirmDialogModal(
+        "Delete this data?",
+        "This action cannot be undone."
+      );
+      if (!ok) return;
+
+      const id = deleteBtn.dataset.id;
+      const response = await sellHistory.deleteSellHistory(id);
+
+      if (response?.status === 200) {
+        openSwal("Success", response.data.message, "success");
+        await loadSellHistory();
+      } else {
+        openSwal("Failed", "Delete failed", "error");
+      }
+
+      return;
+    }
+  });
+
+  formUpdate.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const id = formUpdate.dataset.id;
+    if (!id) return;
+
+    const date = document.querySelector("#dateUpdate").value;
+
+    const payloadToSend = {
+      id,
+      commodityId: document.querySelector("#commodityIdUpdate").value,
+      date: formatDateToDDMMYYYY(date),
+      qty: parseQty("#qtyUpdate"),
+      totalPrice: parseIDRCurrency("#totalPriceUpdate"),
+      memo: document.querySelector("#memoUpdate").value,
+    };
+
+    const response = await sellHistory.updateSellHistory(payloadToSend);
+
+    if (response?.status === 422) {
+      applyErrors(formUpdate, response.data.errors, { suffix: "Update" });
+    } else if (response?.status >= 400 && response?.status < 500) {
+      clearErrors(formUpdate);
+      openSwal("Failed", response.data.message, "error");
+    } else if (response?.status === 200) {
+      clearErrors(formUpdate);
+      openSwal("Success", response.data.message, "success");
+      await loadSellHistory();
+    } else {
+      clearErrors(formUpdate);
+      openSwal("Failed", "Internal Server Error", "error");
+    }
+  });
 </script>
