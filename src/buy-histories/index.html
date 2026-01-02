@@ -231,6 +231,8 @@
     const commodities = await commodity.getCommodityActiveList();
 
     const select = document.querySelector("#commodityId");
+    // reset options every time the modal is opened
+    select.innerHTML = `<option value="">Pilih Komoditas</option>`;
     commodities.forEach((c) => {
       const option = document.createElement("option");
       option.value = c.id;

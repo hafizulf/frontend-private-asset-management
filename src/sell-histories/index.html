@@ -219,6 +219,7 @@
     const commodities = await commodity.getCommodityActiveList();
 
     const select = document.querySelector("#commodityId");
+    select.innerHTML = `<option value="">Pilih Komoditas</option>`;
     commodities.forEach((c) => {
       const option = document.createElement("option");
       option.value = c.id;
