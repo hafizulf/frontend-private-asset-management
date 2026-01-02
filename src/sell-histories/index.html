@@ -31,7 +31,6 @@
                                                     <th>Tanggal</th>
                                                     <th>Komoditi</th>
                                                     <th>Jumlah</th>
-                                                    <th>Harga Satuan</th>
                                                     <th>Harga Total</th>
                                                     <th>#</th>
                                                 </tr>
@@ -55,4 +54,55 @@
 
 <script type="module">
   import sellHistory from "./sell-history.page";
+  import { 
+    formatIDR,
+    formatDateToDDMMYYYY
+  } from "../helpers/formatter.ts";
+
+  const tbody = document.querySelector("#sell-history-tbody");
+  async function loadSellHistory() {
+    try {
+      const list = await sellHistory.getSellHistoryList();
+
+      if (!Array.isArray(list) || list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center text-muted py-4">0 buy history</td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map((u, i) => {
+        const qty = Number(u.qty);
+        const totalPrice = Number(u.totalPrice);
+
+        return `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${formatDateToDDMMYYYY(u.date)}</td>
+            <td>${u.commodityName}</td>
+            <td>${qty.toLocaleString("id-ID")} ${u.commodityUnit}</td>
+            <td>Rp. ${formatIDR(totalPrice)}</td>
+            <td class="d-flex gap-2">
+              <div class="btn-group" role="group" aria-label="Data actions">
+                <button class="btn btn-sm btn-success btn-update" data-id="${u.id}">Update</button>
+                <button class="btn btn-sm btn-danger btn-delete" data-id="${u.id}">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center text-danger py-4">Failed to load sell history</td>
+        </tr>`;
+    }
+  }
+
+  (async () => {
+    await loadSellHistory();
+  })();
 </script>
