@@ -1,0 +1,21 @@
+.info-btn{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  border:0;
+  background:#f8f9fa;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:0;
+  line-height:0; /* kills baseline spacing */
+}
+
+.info-btn i{
+  display:block;      /* kills inline baseline */
+  font-size:1.25rem;
+  line-height:1;
+  color:#0dcaf0;
+}

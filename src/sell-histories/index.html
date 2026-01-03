@@ -27,6 +27,7 @@
                                         <table class="table table-lg text-center">
                                             <thead>
                                                 <tr>
+                                                    <th>Detail</th>
                                                     <th>No.</th>
                                                     <th>Tanggal</th>
                                                     <th>Komoditi</th>
@@ -67,7 +68,7 @@
             <div id="commodityId-error" class="invalid-feedback"></div>
           </div>
           <div class="mb-3">
-            <label for="date" class="form-label">Tanggal Pembelian</label>
+            <label for="date" class="form-label">Tanggal Penjualan</label>
             <input type="date" name="date" class="form-control" id="date">
             <div id="date-error" class="invalid-feedback"></div>
           </div>
@@ -113,7 +114,7 @@
             <div id="commodityIdUpdate-error" class="invalid-feedback"></div>
           </div>
           <div class="mb-3">
-            <label for="date" class="form-label">Tanggal Pembelian</label>
+            <label for="date" class="form-label">Tanggal Penjualan</label>
             <input type="date" name="date" class="form-control" id="dateUpdate">
             <div id="dateUpdate-error" class="invalid-feedback"></div>
           </div>
@@ -142,6 +143,60 @@
   </div>
 </div>
 
+<div class="modal fade" id="modal-detail" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title mb-0">Detail Riwayat Penjualan</h5>
+          <small class="text-body-secondary">Informasi penjualan</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="p-3 rounded border bg-body-tertiary mb-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-bold" id="commodityDetailText">-</div>
+              <div class="text-body-secondary small">Komoditas</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="commodityDetail" class="form-label fw-semibold">Nama Komoditas</label>
+            <input type="text" class="form-control bg-body-tertiary" id="commodityDetail" readonly>
+          </div>
+          <div class="col-md-6">
+            <label for="dateDetail" class="form-label fw-semibold">Tanggal Penjualan</label>
+            <input type="text" class="form-control bg-body-tertiary" id="dateDetail" readonly>
+          </div>
+          <div class="col-md-6">
+            <label for="qtyDetail" class="form-label fw-semibold">Jumlah Yang Dijual</label>
+            <div class="input-group">
+              <span class="input-group-text">Qty</span>
+              <input type="text" class="form-control bg-body-tertiary" id="qtyDetail" readonly>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label for="totalPriceDetail" class="form-label fw-semibold">Total Harga Keseluruhan</label>
+            <div class="input-group">
+              <span class="input-group-text">Rp</span>
+              <input type="text" class="form-control bg-body-tertiary fw-semibold" id="totalPriceDetail" readonly>
+            </div>
+          </div>
+          <div class="col-12">
+            <label for="memoDetail" class="form-label fw-semibold">Memo / Catatan</label>
+            <textarea class="form-control bg-body-tertiary" id="memoDetail" rows="4" readonly></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 {{> footer }}
 
 <script type="module">
@@ -151,6 +206,7 @@
     openModal,
     openSwal,
     confirmDialogModal,
+    openModalDetail,
   } from "../components/modal";
   import { 
     attachIdNumberFormatter,
@@ -185,12 +241,17 @@
 
         return `
           <tr>
+            <td>
+              <button type="button" class="info-btn" id="btn-detail" data-id="${u.id}" aria-label="Info">
+                <i class="bi bi-info-circle-fill"></i>
+              </button>
+            </td>
             <td>${i + 1}</td>
             <td>${formatDateToDDMMYYYY(u.date)}</td>
             <td>${u.commodityName}</td>
             <td>${qty.toLocaleString("id-ID")} ${u.commodityUnit}</td>
             <td>Rp. ${formatIDR(totalPrice)}</td>
-            <td class="d-flex gap-2">
+            <td>
               <div class="btn-group" role="group" aria-label="Data actions">
                 <button class="btn btn-sm btn-success btn-update" data-id="${u.id}">Update</button>
                 <button class="btn btn-sm btn-danger btn-delete" data-id="${u.id}">Delete</button>
@@ -329,6 +390,25 @@
       }
 
       return;
+    }
+
+    const detailBtn = e.target.closest("#btn-detail");
+    if(detailBtn) {
+      e.preventDefault();
+
+      const { id } = detailBtn.dataset;
+      const data = await sellHistory.getOneSellHistory(id);
+
+      const mappings = {
+        "#commodityDetailText": data.commodityName,
+        "#dateDetail": formatDateToDDMMYYYY(data.date),
+        "#commodityDetail": data.commodityName,
+        "#qtyDetail": `${data.qty} ${data.commodityUnit}`,
+        "#totalPriceDetail": formatIDR(data.totalPrice),
+        "#memoDetail": data.memo,
+      };
+
+      openModalDetail("#modal-detail", mappings);
     }
   });
 
