@@ -1,5 +1,4 @@
-import http from "@/assets/javascript/http";
-import { AxiosError, AxiosResponse } from "axios";
+import auth from '@/assets/javascript/auth';
 
 export type ICommodity = {
   id?: string;
@@ -8,72 +7,67 @@ export type ICommodity = {
   isActive: boolean;
   createdAt?: Date;
   updatedAt?: Date;
-}
-
-const prefix = "/commodities";
-const getCommodityActiveList = async (): Promise<AxiosResponse | []> => {
-  try {
-    const res = await http.get(`${prefix}/active`);
-    const payload = res?.data;
-    return Array.isArray(payload?.data) ? payload.data : [];
-  } catch (error) {
-    const err = error as AxiosError;
-    return err.response as AxiosResponse;
-  }
 };
 
-const getCommodity = async (): Promise<AxiosResponse | []> => {
-  try {
-    const res = await http.get(`${prefix}`);
-    const payload = res?.data;
-    return Array.isArray(payload?.data) ? payload.data : [];
-  } catch (error) {
-    const err = error as AxiosError;
-    return err.response as AxiosResponse;
-  }
+type StandardResponse<T> = {
+  message: string;
+  status: number;
+  data: T;
+  errors?: any;
 };
 
-const storeCommodity = async (payload: ICommodity): Promise<AxiosResponse> => {
-  try {
-    const res = await http.post(`${prefix}`, payload);
-    return res;
-  } catch (error) {
-    const err = error as AxiosError;
-    return err.response as AxiosResponse;
-  }
-}
+const prefix = '/commodities';
+const getCommodityActiveList = async (): Promise<ICommodity[]> => {
+  const res = await auth.authRequest<StandardResponse<ICommodity[]>>({
+    method: 'get',
+    url: `${prefix}/active`,
+  });
 
-const deleteCommodity = async (id: string): Promise<AxiosResponse> => {
-  try {
-    const res = await http.delete(`${prefix}/${id}`);
-    return res;
-  } catch (error) {
-    const err = error as AxiosError;
-    return err.response as AxiosResponse;
-  }
-}
+  return Array.isArray(res.data) ? res.data : [];
+};
 
-const getOneCommodity = async (id: string): Promise<AxiosResponse> => {
-  try {
-    const res = await http.get(`${prefix}/${id}`);
-    const payload = res?.data;
-    return payload?.data;
-  } catch (error) {
-    const err = error as AxiosError;
-    return err.response as AxiosResponse;
-  }
-}
+const getCommodity = async (): Promise<ICommodity[]> => {
+  const res = await auth.authRequest<StandardResponse<ICommodity[]>>({
+    method: 'get',
+    url: prefix,
+  });
 
-const updateCommodity = async (payload: ICommodity): Promise<AxiosResponse> => {
-  try {
-    const res = await http.put(`${prefix}/${payload.id}`, payload);
-    return res;
-  } catch (error) {
-    const err = error as AxiosError;
-    return err.response as AxiosResponse;
-  }
-}
+  return Array.isArray(res.data) ? res.data : [];
+};
 
+const storeCommodity = async (payload: ICommodity): Promise<void> => {
+  await auth.authRequest({
+    method: 'post',
+    url: prefix,
+    data: payload,
+  });
+};
+
+const deleteCommodity = async (id: string): Promise<void> => {
+  await auth.authRequest({
+    method: 'delete',
+    url: `${prefix}/${id}`,
+  });
+};
+
+const getOneCommodity = async (id: string): Promise<ICommodity> => {
+  const res = await auth.authRequest<StandardResponse<ICommodity>>({
+    method: 'get',
+    url: `${prefix}/${id}`,
+  });
+
+  return res.data;
+};
+
+const updateCommodity = async (payload: ICommodity): Promise<void> => {
+  if (!payload.id) throw new Error('Missing payload.id');
+
+  await auth.authRequest({
+    method: 'put',
+    url: `${prefix}/${payload.id}`,
+    data: payload,
+  });
+};
 
 export default {
   getCommodityActiveList,
@@ -81,5 +75,5 @@ export default {
   storeCommodity,
   deleteCommodity,
   getOneCommodity,
-  updateCommodity
-}
+  updateCommodity,
+};

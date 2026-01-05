@@ -1,4 +1,4 @@
-import http from "@/assets/javascript/http";
+import auth from '@/assets/javascript/auth';
 
 export type User = {
   id: string;
@@ -7,12 +7,22 @@ export type User = {
   roleName: string;
 };
 
+type StandardResponse<T> = {
+  message: string;
+  status: number;
+  data: T;
+  errors?: any;
+};
+
 const getUserList = async (): Promise<User[]> => {
-  const res = await http.get("/users");
-  const payload = res?.data;
-  return Array.isArray(payload?.data) ? payload.data : [];
+  const res = await auth.authRequest<StandardResponse<User[]>>({
+    method: 'get',
+    url: '/users',
+  });
+
+  return Array.isArray(res.data) ? res.data : [];
 };
 
 export default {
   getUserList,
-}
+};
