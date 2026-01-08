@@ -242,7 +242,7 @@
         return `
           <tr>
             <td>
-              <button type="button" class="info-btn" id="btn-detail" data-id="${u.id}" aria-label="Info">
+              <button type="button" class="info-btn btn-detail" data-id="${u.id}" aria-label="Info">
                 <i class="bi bi-info-circle-fill"></i>
               </button>
             </td>
@@ -253,8 +253,8 @@
             <td>Rp. ${formatIDR(totalPrice)}</td>
             <td>
               <div class="btn-group" role="group" aria-label="Data actions">
-                <button class="btn btn-sm btn-success btn-update" data-id="${u.id}">Update</button>
-                <button class="btn btn-sm btn-danger btn-delete" data-id="${u.id}">Delete</button>
+                <button class="btn btn-sm btn-success btn-warning btn-update" data-id="${u.id}">Update</button>
+                <button class="btn btn-sm btn-danger btn-delete btn-delete" data-id="${u.id}">Delete</button>
               </div>
             </td>
           </tr>
@@ -316,20 +316,28 @@
       memo: document.querySelector("#memo").value
     }
 
-    const response = await sellHistory.saveSellHistory(payloadToSend);
-    if(response?.status === 422) {
-      const errors = response.data.errors;
-      applyErrors(formTambah, errors);
-    } else if (response?.status >= 400 && response?.status < 500) {
+    try {
+      const res = await sellHistory.saveSellHistory(payloadToSend);
       clearErrors(formTambah);
-      openSwal("Failed", response.data.message, "error");
-    } else if(response?.status === 201) {
-      clearErrors(formTambah);
-      openSwal("Success", response.data.message, "success");
+      openSwal("Success", res?.message ?? "Created", "success");
       await loadSellHistory();
-    } else {
+    } catch (err) {
+      const status = err?.response?.status ?? err?.status;
+      const data = err?.response?.data;
+
+      if (status === 422) {
+        applyErrors(formTambah, data?.errors ?? {});
+        return;
+      }
+
+      if (status >= 400 && status < 500) {
+        clearErrors(formTambah);
+        openSwal("Failed", data?.message ?? "Request failed", "error");
+        return;
+      }
+
       clearErrors(formTambah);
-      openSwal("Failed to add sell history", "Internal Server Error", "error");
+      openSwal("Failed", "Internal Server Error", "error");
     }
   })
 
@@ -380,19 +388,26 @@
       if (!ok) return;
 
       const id = deleteBtn.dataset.id;
-      const response = await sellHistory.deleteSellHistory(id);
-
-      if (response?.status === 200) {
-        openSwal("Success", response.data.message, "success");
+      try {
+        const res = await sellHistory.deleteSellHistory(id);
+        openSwal("Success", res?.message ?? "Deleted", "success");
         await loadSellHistory();
-      } else {
-        openSwal("Failed", "Delete failed", "error");
+      } catch (err) {
+        const status = err?.response?.status ?? err?.status;
+        const data = err?.response?.data;
+
+        if (status >= 400 && status < 500) {
+          openSwal("Failed", data?.message ?? "Delete failed", "error");
+          return;
+        }
+
+        openSwal("Failed", "Internal Server Error", "error");
       }
 
       return;
     }
 
-    const detailBtn = e.target.closest("#btn-detail");
+    const detailBtn = e.target.closest(".btn-detail");
     if(detailBtn) {
       e.preventDefault();
 
@@ -429,18 +444,26 @@
       memo: document.querySelector("#memoUpdate").value,
     };
 
-    const response = await sellHistory.updateSellHistory(payloadToSend);
-
-    if (response?.status === 422) {
-      applyErrors(formUpdate, response.data.errors, { suffix: "Update" });
-    } else if (response?.status >= 400 && response?.status < 500) {
+    try {
+      const res = await sellHistory.updateSellHistory(payloadToSend);
       clearErrors(formUpdate);
-      openSwal("Failed", response.data.message, "error");
-    } else if (response?.status === 200) {
-      clearErrors(formUpdate);
-      openSwal("Success", response.data.message, "success");
+      openSwal("Success", res?.message ?? "Updated", "success");
       await loadSellHistory();
-    } else {
+    } catch (err) {
+      const status = err?.response?.status ?? err?.status;
+      const data = err?.response?.data;
+
+      if (status === 422) {
+        applyErrors(formUpdate, data?.errors ?? {}, { suffix: "Update" });
+        return;
+      }
+
+      if (status >= 400 && status < 500) {
+        clearErrors(formUpdate);
+        openSwal("Failed", data?.message ?? "Request failed", "error");
+        return;
+      }
+
       clearErrors(formUpdate);
       openSwal("Failed", "Internal Server Error", "error");
     }

@@ -198,24 +198,30 @@
       name: capitalizeWords(document.querySelector("#name").value),
       unit: document.querySelector("#unit").value,
       isActive: addToggleFormTambah.value,
-    }
+    };
 
-    const response = await commodity.storeCommodity(payloadToSend);
-    
-    if(response?.status === 422) {
-      const errors = response.data.errors;
-      applyErrors(formTambah, errors);
-    } else if(response?.status === 404) {
+    try {
+      const res = await commodity.storeCommodity(payloadToSend);
       clearErrors(formTambah);
-      openSwal("Failed to add commodity", response.data.message, "error");
-    } else if(response?.status === 201) {
-      clearErrors(formTambah);
-      openSwal("Success", response.data.message, "success");
-
+      openSwal("Success", res?.message ?? "Created", "success");
       await loadCommodity();
-    } else {
+    } catch (err) {
+      const status = err?.response?.status ?? err?.status;
+      const data = err?.response?.data;
+
+      if (status === 422) {
+        applyErrors(formTambah, data?.errors ?? {});
+        return;
+      }
+
+      if (status >= 400 && status < 500) {
+        clearErrors(formTambah);
+        openSwal("Failed", data?.message ?? "Request failed", "error");
+        return;
+      }
+
       clearErrors(formTambah);
-      openSwal("Failed to add commodity", "Internal Server Error", "error");
+      openSwal("Failed", "Internal Server Error", "error");
     }
   })
 
@@ -251,15 +257,22 @@
       if (!ok) return;
 
       const id = deleteBtn.dataset.id;
-      const response = await commodity.deleteCommodity(id);
 
-      if (response?.status === 200) {
-        openSwal("Success", response.data.message, "success");
+      try {
+        const res = await commodity.deleteCommodity(id);
+        openSwal("Success", res?.message ?? "Deleted", "success");
         await loadCommodity();
-      } else {
-        openSwal("Failed", "Delete failed", "error");
-      }
+      } catch (err) {
+        const status = err?.response?.status ?? err?.status;
+        const data = err?.response?.data;
 
+        if (status >= 400 && status < 500) {
+          openSwal("Failed", data?.message ?? "Delete failed", "error");
+          return;
+        }
+
+        openSwal("Failed", "Internal Server Error", "error");
+      }
       return;
     }
   });
@@ -277,18 +290,26 @@
       isActive: document.querySelector('#isActiveUpdate').checked,
     };
 
-    const response = await commodity.updateCommodity(payloadToSend);
-
-    if (response?.status === 422) {
-      applyErrors(formUpdate, response.data.errors, { suffix: "Update" });
-    } else if (response?.status >= 400 && response?.status < 500) {
+    try {
+      const res = await commodity.updateCommodity(payloadToSend);
       clearErrors(formUpdate);
-      openSwal("Failed", response.data.message, "error");
-    } else if (response?.status === 200) {
-      clearErrors(formUpdate);
-      openSwal("Success", response.data.message, "success");
+      openSwal("Success", res?.message ?? "Updated", "success");
       await loadCommodity();
-    } else {
+    } catch (err) {
+      const status = err?.response?.status ?? err?.status;
+      const data = err?.response?.data;
+
+      if (status === 422) {
+        applyErrors(formUpdate, data?.errors ?? {}, { suffix: "Update" });
+        return;
+      }
+
+      if (status >= 400 && status < 500) {
+        clearErrors(formUpdate);
+        openSwal("Failed", data?.message ?? "Request failed", "error");
+        return;
+      }
+
       clearErrors(formUpdate);
       openSwal("Failed", "Internal Server Error", "error");
     }
