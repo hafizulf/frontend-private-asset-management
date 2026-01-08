@@ -1,0 +1,194 @@
+/* =========================================================
+   KPI CARDS – DASHBOARD (FULL REPLACEMENT)
+   ========================================================= */
+
+.kpi-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px;
+  border-radius: 18px;
+  color: rgba(255, 255, 255, 0.92);
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* highlight */
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  inset: -35% -20% auto -20%;
+  height: 120%;
+  background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.22), transparent 55%);
+  pointer-events: none;
+}
+
+.kpi-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 46%;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,.18));
+  pointer-events: none;
+}
+
+/* header */
+.kpi-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.kpi-title {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.kpi-badge {
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255,255,255,.95);
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+
+/* value area */
+.kpi-value {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  text-align: center;
+
+  font-size: 28px; /* baseline */
+}
+
+/* profit: same baseline, but responsive + safe for long IDR */
+.kpi-value--profit {
+  font-size: clamp(18px, 2.2vw, 28px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* buy/sell count: bigger */
+.kpi-value--count {
+  font-size: 44px;
+}
+
+/* footer */
+.kpi-foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.kpi-muted { opacity: 0.75; }
+.kpi-strong { font-weight: 650; }
+
+.kpi-hidden { display: none !important; }
+
+/* stock chart */
+.kpi-chart {
+  position: relative;
+  z-index: 1;
+  height: 170px;
+  margin-top: 8px;
+}
+
+.kpi-chart canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* legend */
+.kpi-legend {
+  position: relative;
+  z-index: 1;
+  margin-top: 8px;
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+}
+
+/* IMPORTANT: safe for many commodities */
+.kpi-stock .kpi-legend {
+  max-height: 180px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.kpi-legend .legend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.kpi-legend .legend-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.kpi-legend .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.kpi-legend .name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+  opacity: 0.9;
+}
+
+.kpi-legend .value {
+  opacity: 0.9;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* scrollbar (optional) */
+.kpi-stock .kpi-legend::-webkit-scrollbar {
+  width: 8px;
+}
+.kpi-stock .kpi-legend::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.18);
+  border-radius: 999px;
+}
+
+/* gradients */
+.kpi-profit { background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); }
+.kpi-buy    { background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%); }
+.kpi-sell   { background: linear-gradient(135deg, #f43f5e 0%, #f59e0b 100%); }
+.kpi-stock  { background: linear-gradient(135deg, #334155 0%, #7c3aed 100%); }

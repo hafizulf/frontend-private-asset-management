@@ -122,6 +122,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: path.resolve(__dirname, "src/index.html"),
+        dashboard: path.resolve(__dirname, "src/dashboard/index.html"),
         login: path.resolve(__dirname, "src/auth/login/index.html"),
         user: path.resolve(__dirname, "src/user/index.html"),
         buyHistories: path.resolve(__dirname, "src/buy-histories/index.html"),
@@ -138,6 +139,7 @@ export default defineConfig({
       context: (pagePath) => {
         const titles = {
           '/index.html': 'Home Page',
+          '/dashboard/index.html': 'Dashboard',
           '/user/index.html': 'Daftar User',
           '/buy-histories/index.html': 'Riwayat Pembelian',
           '/sell-histories/index.html': 'Riwayat Penjualan',
@@ -155,6 +157,7 @@ export default defineConfig({
         server.middlewares.use(slashForFolders("src"));
         server.middlewares.use(aliasRedirect({
           "/login": "/auth/login/",
+          "/dashboard": "/dashboard/",
           "/not-found": "/404.html",
         }));
         addDevNotFound(server);
@@ -163,6 +166,7 @@ export default defineConfig({
         server.middlewares.use(slashForFolders("dist"));
         server.middlewares.use(aliasRedirect({
           "/login": "/auth/login/",
+          "/dashboard": "/dashboard/",
           "/not-found": "/404.html", 
         }));
         addPreviewNotFound(server);

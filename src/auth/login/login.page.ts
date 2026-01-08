@@ -30,7 +30,7 @@ export async function initLoginPage() {
       localStorage.setItem('token', data.data.token);
 
       const p = new URLSearchParams(location.search);
-      location.replace(p.get('next') || '/');
+      location.replace(p.get('next') || '/dashboard/');
     } catch (err: any) {
       const res = err?.response;
 
