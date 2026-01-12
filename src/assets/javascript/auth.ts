@@ -12,18 +12,33 @@ function clearAccessToken() {
   localStorage.removeItem('token');
 }
 
+function getStatus(err: any): number | undefined {
+  return err?.status ?? err?.response?.status;
+}
+
+function isUnauthorizedStatus(status: any) {
+  return status === 401 || status === 403 || status === 422;
+}
+
 async function refreshAccessToken(): Promise<string> {
   refreshPromise ??= (async () => {
     const res = await http.post('/auths/refresh-token'); // cookie-based
     const newToken = res.data?.data;
+
     if (typeof newToken !== 'string' || !newToken) {
-      throw new Error('Refresh response does not contain token string');
+      throw Object.assign(new Error('REFRESH_NO_TOKEN'), { status: 401 });
     }
+
     setAccessToken(newToken);
     return newToken;
-  })().finally(() => {
-    refreshPromise = null;
-  });
+  })()
+    .catch((err) => {
+      clearAccessToken();
+      throw err;
+    })
+    .finally(() => {
+      refreshPromise = null;
+    });
 
   return refreshPromise;
 }
@@ -36,8 +51,22 @@ async function authRequest<T = any>(config: {
   headers?: Record<string, string>;
 }): Promise<T> {
   const token = getAccessToken();
-  if (!token)
-    throw Object.assign(new Error('NO_ACCESS_TOKEN'), { status: 401 });
+
+  // If no access token, try refresh first (cookie-based)
+  if (!token) {
+    const newToken = await refreshAccessToken();
+    const res = await http.request({
+      method: config.method,
+      url: config.url,
+      data: config.data,
+      params: config.params,
+      headers: {
+        ...(config.headers ?? {}),
+        Authorization: `Bearer ${newToken}`,
+      },
+    });
+    return res.data;
+  }
 
   try {
     const res = await http.request({
@@ -45,12 +74,15 @@ async function authRequest<T = any>(config: {
       url: config.url,
       data: config.data,
       params: config.params,
-      headers: { ...(config.headers ?? {}), Authorization: `Bearer ${token}` },
+      headers: {
+        ...(config.headers ?? {}),
+        Authorization: `Bearer ${token}`,
+      },
     });
     return res.data;
   } catch (err: any) {
-    const status = err?.response?.status;
-    if (status !== 401) throw err;
+    const status = getStatus(err);
+    if (!isUnauthorizedStatus(status)) throw err;
 
     const newToken = await refreshAccessToken();
     const res2 = await http.request({
@@ -68,15 +100,12 @@ async function authRequest<T = any>(config: {
 }
 
 async function isLoggedIn(): Promise<boolean> {
-  const token = getAccessToken();
-  if (!token) return false;
-
   try {
     await authRequest({ method: 'get', url: '/auths/getMe' });
     return true;
   } catch (err: any) {
-    const status = err?.status ?? err?.response?.status;
-    if (status === 401 || status === 422 || status === 403) return false;
+    const status = getStatus(err);
+    if (isUnauthorizedStatus(status)) clearAccessToken();
     return false;
   }
 }
