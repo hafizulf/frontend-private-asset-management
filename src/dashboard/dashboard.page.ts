@@ -29,6 +29,27 @@ export type IStockAssetsResponse = {
   totalStockAssets: IStockAssetItem[];
 };
 
+export type IBuySellSeriesPoint = {
+  bucket: string;
+  buy: string;
+  sell: string;
+};
+
+export type IBuySellSeriesResponse = {
+  meta: {
+    filter: string;
+    from: string;
+    to: string;
+    granularity: "day" | "week" | "month";
+    metric: "value" | "qty";
+  };
+  series: IBuySellSeriesPoint[];
+  totals: {
+    buy: string;
+    sell: string;
+  };
+};
+
 const prefix = '/dashboard';
 const getTotalBuyTransactions = async (queryParams?: string): Promise<ITotalTransactions> => {
   const res = await auth.authRequest<StandardResponse<ITotalTransactions>>({
@@ -66,9 +87,19 @@ const getStockAssets = async (queryParams?: string): Promise<IStockAssetsRespons
   return res.data;
 };
 
+const getBuySellSeries = async (queryParams?: string): Promise<IBuySellSeriesResponse> => {
+  const res = await auth.authRequest<StandardResponse<IBuySellSeriesResponse>>({
+    method: "get",
+    url: `${prefix}/buy-sell-series${queryParams ?? ""}`,
+  });
+  return res.data;
+};
+
+
 export default {
   getTotalBuyTransactions,
   getTotalSellTransactions,
   getTotalProfitLoss,
   getStockAssets,
+  getBuySellSeries,
 }

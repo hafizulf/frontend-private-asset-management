@@ -23,10 +23,7 @@
         <button type="button" class="btn btn-outline-primary" data-filter="date_range">Date Range</button>
       </div>
 
-      <div class="d-flex align-items-center gap-2">
-        <small class="text-muted" id="filter-label">Month</small>
-        <button class="btn btn-sm btn-primary" id="btn-apply-filter" type="button">Apply</button>
-      </div>
+      <small class="text-muted" id="filter-label">Month</small>
     </div>
 
     <!-- Date Range Modal -->
@@ -134,11 +131,28 @@
 
       <div class="col-12 col-xl-8">
         <div class="card h-100">
-          <div class="card-header">
+          <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="card-title mb-0">Buy vs Sell Over Time</h4>
+
+            <div class="d-flex gap-2">
+              <div class="btn-group btn-group-sm" role="group" aria-label="Granularity">
+                <button type="button" class="btn btn-primary" data-granularity="day">Daily</button>
+                <button type="button" class="btn btn-outline-primary" data-granularity="week">Weekly</button>
+                <button type="button" class="btn btn-outline-primary" data-granularity="month">Monthly</button>
+              </div>
+
+              <div class="btn-group btn-group-sm" role="group" aria-label="Metric">
+                <button type="button" class="btn btn-primary" data-metric="value">Value</button>
+                <button type="button" class="btn btn-outline-primary" data-metric="qty">Qty</button>
+              </div>
+            </div>
           </div>
+
           <div class="card-body">
-            <div class="text-center text-muted py-5">[ Line Chart Here ]</div>
+            <div class="position-relative" style="height: 320px;">
+              <canvas id="buy-sell-line"></canvas>
+            </div>
+            <small class="text-muted d-block mt-2" id="buy-sell-caption"></small>
           </div>
         </div>
       </div>

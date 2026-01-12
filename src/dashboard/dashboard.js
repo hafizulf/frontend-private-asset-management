@@ -2,17 +2,22 @@ import { Modal } from "bootstrap";
 import dashboardApi from "./dashboard.page";
 import { formatIDR } from "../helpers/formatter";
 import { renderStockAssetsPie } from "./stock-assets-pie";
+import { initBuySellLineChart, updateBuySellLineChart } from "./buy-sell-line";
 
 /* ================== STATE ================== */
 const state = {
   filter: "month",
-  from: undefined, // YYYY-MM-DD
-  to: undefined,   // YYYY-MM-DD
+  from: undefined,
+  to: undefined, 
+};
+
+const seriesState = {
+  granularity: "day",
+  metric: "value",
 };
 
 /* ================== DOM ================== */
 const filterLabel = document.getElementById("filter-label");
-const btnApply = document.getElementById("btn-apply-filter");
 
 const modalEl = document.getElementById("modal-date-range");
 const modal = modalEl ? new Modal(modalEl) : null;
@@ -21,10 +26,14 @@ const inputFrom = document.getElementById("range-from");
 const inputTo = document.getElementById("range-to");
 const btnApplyRange = document.getElementById("btn-apply-range");
 
-// KPI DOM (matches the NEW KPI HTML)
+// KPI DOM
 const profitTitleEl = document.querySelector(".kpi-profit .kpi-title");
 const profitTrendEl = document.getElementById("kpi-profit-trend");
 const periodBadgeEl = document.getElementById("kpi-period-badge");
+
+// Buy/Sell chart controls
+const granularityGroup = document.querySelector('[aria-label="Granularity"]');
+const metricGroup = document.querySelector('[aria-label="Metric"]');
 
 /* ================== HELPERS ================== */
 function setText(id, value) {
@@ -39,6 +48,16 @@ function capitalize(s) {
 function setActiveFilterButton(filter) {
   document.querySelectorAll("[data-filter]").forEach((btn) => {
     const active = btn.dataset.filter === filter;
+    btn.classList.toggle("btn-primary", active);
+    btn.classList.toggle("btn-outline-primary", !active);
+  });
+}
+
+function setActiveGroupButtons(groupEl, dataAttrName, activeValue) {
+  if (!groupEl) return;
+  groupEl.querySelectorAll(`button[${dataAttrName}]`).forEach((btn) => {
+    const v = btn.getAttribute(dataAttrName);
+    const active = v === activeValue;
     btn.classList.toggle("btn-primary", active);
     btn.classList.toggle("btn-outline-primary", !active);
   });
@@ -93,10 +112,9 @@ function setProfitHeader() {
   if (periodBadgeEl) periodBadgeEl.textContent = getPeriodLabel();
 }
 
-/* hide trend only when filter=all */
+// hide trend only when filter=all
 function toggleProfitTrend() {
   if (!profitTrendEl) return;
-  // use your CSS class (kpi-hidden) for consistent styling
   profitTrendEl.classList.toggle("kpi-hidden", state.filter === "all");
 }
 
@@ -114,7 +132,6 @@ function buildQuery() {
   qs.set("filter", state.filter);
 
   if (state.filter === "date_range") {
-    // backend expects DD-MM-YYYY
     qs.set("from", ymdToDmy(state.from));
     qs.set("to", ymdToDmy(state.to));
   }
@@ -128,6 +145,25 @@ function buildStockQuery(commodityId) {
   if (commodityId) qs.set("commodity", commodityId);
   const q = qs.toString();
   return q ? `?${q}` : "";
+}
+
+function mapSeriesMetric(uiMetric) {
+  return uiMetric === "qty" ? "qty" : "value";
+}
+
+function buildSeriesQuery() {
+  const qs = new URLSearchParams();
+  qs.set("filter", state.filter);
+
+  if (state.filter === "date_range") {
+    qs.set("from", ymdToDmy(state.from));
+    qs.set("to", ymdToDmy(state.to));
+  }
+
+  qs.set("granularity", seriesState.granularity);
+  qs.set("metric", mapSeriesMetric(seriesState.metric));
+
+  return `?${qs.toString()}`;
 }
 
 /* ================== RANGE VALIDATION ================== */
@@ -170,7 +206,20 @@ function validateRange(from, to) {
   return ok;
 }
 
-/* ================== MAIN LOAD ================== */
+/* ================== BUY/SELL SERIES LOAD ================== */
+async function refreshBuySellSeries() {
+  try {
+    const q = buildSeriesQuery();
+    const payload = await dashboardApi.getBuySellSeries(q);
+    updateBuySellLineChart(payload);
+  } catch (err) {
+    console.error("refreshBuySellSeries failed:", err);
+    const cap = document.getElementById("buy-sell-caption");
+    if (cap) cap.textContent = "Failed to load Buy/Sell series";
+  }
+}
+
+/* ================== MAIN KPI LOAD ================== */
 async function refreshDashboard() {
   try {
     const query = buildQuery();
@@ -234,9 +283,16 @@ document.querySelectorAll("[data-filter]").forEach((btn) => {
     const f = btn.dataset.filter;
 
     if (f === "date_range") {
+      // Prefill modal with current range (if any)
+      if (state.from) inputFrom.value = state.from;
+      if (state.to) inputTo.value = state.to;
+      clearRangeErrors();
       modal?.show();
       return;
     }
+
+    // If same filter clicked, do nothing
+    if (state.filter === f && state.filter !== "date_range") return;
 
     state.filter = f;
     state.from = undefined;
@@ -246,6 +302,10 @@ document.querySelectorAll("[data-filter]").forEach((btn) => {
     setLabel();
     setProfitHeader();
     toggleProfitTrend();
+
+    // auto refresh
+    refreshDashboard();
+    refreshBuySellSeries();
   });
 });
 
@@ -264,21 +324,50 @@ btnApplyRange?.addEventListener("click", () => {
   setProfitHeader();
   toggleProfitTrend();
   modal?.hide();
-});
 
-btnApply?.addEventListener("click", () => {
-  if (state.filter === "date_range" && (!state.from || !state.to)) {
-    modal?.show();
-    return;
-  }
   refreshDashboard();
+  refreshBuySellSeries();
 });
 
 modalEl?.addEventListener("hidden.bs.modal", clearRangeErrors);
+
+/* Granularity buttons */
+granularityGroup?.querySelectorAll("button[data-granularity]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const next = btn.dataset.granularity;
+    if (seriesState.granularity === next) return; // ✅ avoid refetch
+    seriesState.granularity = next;
+
+    setActiveGroupButtons(granularityGroup, "data-granularity", seriesState.granularity);
+    refreshBuySellSeries();
+  });
+});
+
+/* Metric buttons */
+metricGroup?.querySelectorAll("button[data-metric]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const next = btn.dataset.metric; // value|qty
+    if (seriesState.metric === next) return; // ✅ avoid refetch
+    seriesState.metric = next;
+
+    setActiveGroupButtons(metricGroup, "data-metric", seriesState.metric);
+    refreshBuySellSeries();
+  });
+});
 
 /* ================== INIT ================== */
 setActiveFilterButton(state.filter);
 setLabel();
 setProfitHeader();
 toggleProfitTrend();
+
+// init chart once
+initBuySellLineChart("buy-sell-line");
+
+// init active state for button groups
+setActiveGroupButtons(granularityGroup, "data-granularity", seriesState.granularity);
+setActiveGroupButtons(metricGroup, "data-metric", seriesState.metric);
+
+// initial loads
 refreshDashboard();
+refreshBuySellSeries();
