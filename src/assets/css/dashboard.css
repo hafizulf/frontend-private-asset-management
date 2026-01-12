@@ -192,3 +192,5 @@
 .kpi-buy    { background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%); }
 .kpi-sell   { background: linear-gradient(135deg, #f43f5e 0%, #f59e0b 100%); }
 .kpi-stock  { background: linear-gradient(135deg, #334155 0%, #7c3aed 100%); }
+
+#buy-sell-caption .badge { font-weight: 500; }

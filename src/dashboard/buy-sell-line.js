@@ -83,13 +83,35 @@ export function updateBuySellLineChart(payload, captionElId = "buy-sell-caption"
 
   chartInstance.update();
 
-  const captionEl = document.getElementById(captionElId);
-  if (captionEl) {
+  const root = document.getElementById(captionElId);
+  const left = document.getElementById("buy-sell-caption-left");
+  const right = document.getElementById("buy-sell-caption-right");
+
+  if (root && left && right) {
+    const filter = payload.meta?.filter ?? "-";
+    const from = payload.meta?.from ?? "-";
+    const to = payload.meta?.to ?? "-";
+    const granularity = payload.meta?.granularity ?? "-";
+    const metricLabel = metric === "qty" ? "Qty" : "Value";
+
     const buyTotal = formatTotal(metric, payload.totals.buy);
     const sellTotal = formatTotal(metric, payload.totals.sell);
 
-    captionEl.textContent =
-      `${payload.meta.filter} • ${payload.meta.from} → ${payload.meta.to} • ` +
-      `${payload.meta.granularity} • ${metric} • totals: buy ${buyTotal}, sell ${sellTotal}`;
+    const pill = (text, tone = "secondary") =>
+      `<span class="badge rounded-pill bg-${tone}">${text}</span>`;
+
+    left.innerHTML = [
+      pill(String(filter).toUpperCase(), "light text-dark"),
+      pill(String(granularity).toUpperCase(), "light text-dark"),
+      pill(metricLabel, "light text-dark"),
+    ].join("");
+
+    right.innerHTML = [
+      `<span class="text-muted small">${from} → ${to}</span>`,
+      `<span class="text-muted small">•</span>`,
+      `<span class="small"><span class="text-muted">Buy</span> <strong>${buyTotal}</strong></span>`,
+      `<span class="text-muted small">•</span>`,
+      `<span class="small"><span class="text-muted">Sell</span> <strong>${sellTotal}</strong></span>`,
+    ].join("");
   }
 }
