@@ -50,6 +50,29 @@ export type IBuySellSeriesResponse = {
   };
 };
 
+export type ITopCommodityItem = {
+  commodityId: string;
+  commodityName: string;
+  buyQty: string;
+  buyValue: string;
+  sellQty: string;
+  sellValue: string;
+  totalQty: string;
+  totalValue: string;
+};
+
+export type ITopCommoditiesResponse = {
+  meta: {
+    filter: string;
+    from?: string;
+    to?: string;
+    metric: "value" | "qty";
+    limit: number;
+  };
+  items: ITopCommodityItem[];
+};
+
+
 const prefix = '/dashboard';
 const getTotalBuyTransactions = async (queryParams?: string): Promise<ITotalTransactions> => {
   const res = await auth.authRequest<StandardResponse<ITotalTransactions>>({
@@ -95,6 +118,14 @@ const getBuySellSeries = async (queryParams?: string): Promise<IBuySellSeriesRes
   return res.data;
 };
 
+const getTopCommodities = async (queryParams?: string): Promise<ITopCommoditiesResponse> => {
+  const res = await auth.authRequest<StandardResponse<ITopCommoditiesResponse>>({
+    method: "get",
+    url: `${prefix}/top-commodities${queryParams ?? ""}`,
+  });
+
+  return res.data;
+};
 
 export default {
   getTotalBuyTransactions,
@@ -102,4 +133,5 @@ export default {
   getTotalProfitLoss,
   getStockAssets,
   getBuySellSeries,
+  getTopCommodities,
 }

@@ -194,3 +194,103 @@
 .kpi-stock  { background: linear-gradient(135deg, #334155 0%, #7c3aed 100%); }
 
 #buy-sell-caption .badge { font-weight: 500; }
+
+.top-commodity-row {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.02);
+}
+.top-commodity-meter {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+.top-commodity-meter > div {
+  height: 100%;
+  border-radius: 999px;
+}
+.top-commodity-rank {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  background: rgba(13,110,253,0.10);
+  color: #0d6efd;
+  font-weight: 600;
+}
+
+/* compact layout when metric=value */
+.top-commodities-value .top-commodity-row .text-end .fw-semibold {
+  font-size: 0.92rem;      /* smaller total */
+  line-height: 1.1;
+  margin-top: -2px;        /* move up a bit */
+}
+
+.top-commodities-value .top-commodity-row .text-muted.small {
+  font-size: 0.78rem;      /* smaller buy/sell line */
+  line-height: 1.15;
+}
+
+/* reduce gap so it doesn't eat space */
+.top-commodities-value .top-commodity-row .text-muted.small.d-flex {
+  gap: 6px !important;
+}
+
+/* make the dot separator tighter */
+.top-commodities-value .top-commodity-row .text-muted.small span {
+  white-space: nowrap;
+}
+
+/* ===== Total positioning tweak ===== */
+
+/* Move total slightly up */
+.top-commodity-total {
+  margin-top: -6px;
+}
+
+/* Make total visually closer to commodity name */
+.top-commodity-row > .d-flex > .top-commodity-total {
+  align-self: flex-start;
+}
+
+/* Value mode: slightly smaller + tighter */
+.top-commodities-value .top-commodity-total .fw-semibold {
+  font-size: 0.9rem;
+  line-height: 1.1;
+}
+
+/* Qty mode: keep original emphasis */
+.top-commodities-value:not(.top-commodities-value) .top-commodity-total .fw-semibold {
+  font-size: 1rem;
+}
+
+/* Allow buy/sell line to wrap and not be clipped by parent truncation */
+.top-commodity-detail-line {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  flex-wrap: wrap;
+}
+
+/* Make sure the inner truncation container can grow properly */
+.top-commodity-row .text-truncate {
+  min-width: 0;
+}
+
+/* Optional: keep the dot separator from breaking weirdly */
+.top-commodity-detail-line > span {
+  white-space: nowrap;
+}
+
+.top-commodities-value .top-commodity-row .fw-semibold {
+  font-size: 0.95rem;
+}
+
+.top-commodities-value .top-commodity-row .text-muted.small {
+  font-size: 0.8rem;
+  line-height: 1.15;
+}

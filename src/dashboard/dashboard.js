@@ -8,12 +8,17 @@ import { initBuySellLineChart, updateBuySellLineChart } from "./buy-sell-line";
 const state = {
   filter: "month",
   from: undefined,
-  to: undefined, 
+  to: undefined,
 };
 
 const seriesState = {
   granularity: "day",
   metric: "value",
+};
+
+const topState = {
+  metric: "qty", // "qty" (volume) | "value"
+  limit: 5,
 };
 
 /* ================== DOM ================== */
@@ -34,6 +39,11 @@ const periodBadgeEl = document.getElementById("kpi-period-badge");
 // Buy/Sell chart controls
 const granularityGroup = document.querySelector('[aria-label="Granularity"]');
 const metricGroup = document.querySelector('[aria-label="Metric"]');
+
+// Top commodities DOM
+const topMetricGroup = document.getElementById("top-commodities-metric");
+const topListEl = document.getElementById("top-commodities-list");
+const topCaptionEl = document.getElementById("top-commodities-caption");
 
 /* ================== HELPERS ================== */
 function setText(id, value) {
@@ -166,6 +176,21 @@ function buildSeriesQuery() {
   return `?${qs.toString()}`;
 }
 
+function buildTopCommoditiesQuery() {
+  const qs = new URLSearchParams();
+  qs.set("filter", state.filter);
+
+  if (state.filter === "date_range") {
+    qs.set("from", ymdToDmy(state.from));
+    qs.set("to", ymdToDmy(state.to));
+  }
+
+  qs.set("metric", topState.metric);
+  qs.set("limit", String(topState.limit));
+
+  return `?${qs.toString()}`;
+}
+
 /* ================== RANGE VALIDATION ================== */
 function clearRangeErrors() {
   inputFrom?.classList.remove("is-invalid");
@@ -216,6 +241,149 @@ async function refreshBuySellSeries() {
     console.error("refreshBuySellSeries failed:", err);
     const cap = document.getElementById("buy-sell-caption");
     if (cap) cap.textContent = "Failed to load Buy/Sell series";
+  }
+}
+
+/* ================== TOP COMMODITIES RENDER ================== */
+function setActiveTopMetric(metric) {
+  if (!topMetricGroup) return;
+  topMetricGroup.querySelectorAll('button[data-top-metric]').forEach((btn) => {
+    const v = btn.getAttribute("data-top-metric");
+    const active = v === metric;
+    btn.classList.toggle("btn-primary", active);
+    btn.classList.toggle("btn-outline-primary", !active);
+  });
+}
+
+function renderTopCommodities(payload) {
+  if (!topListEl) return;
+
+  const metric = payload?.meta?.metric || topState.metric;
+  const items = payload?.items ?? [];
+
+  // compact tweak for value mode (optional – keep if you like)
+  topListEl.classList.toggle("top-commodities-value", metric === "value");
+
+  const rightLabel = document.getElementById("top-commodities-right-label");
+  if (rightLabel) rightLabel.textContent = metric === "qty" ? "Total Qty" : "Total Value";
+
+  if (!items.length) {
+    topListEl.innerHTML = `<div class="text-muted small">No data</div>`;
+    if (topCaptionEl) topCaptionEl.textContent = "";
+    const hint = document.getElementById("top-commodities-hint");
+    if (hint) hint.textContent = "";
+    return;
+  }
+
+  const max = Math.max(
+    ...items.map((it) => Number(metric === "qty" ? it.totalQty : it.totalValue) || 0),
+    1
+  );
+
+  topListEl.innerHTML = items
+    .map((it, idx) => {
+      const rawTotal = Number(metric === "qty" ? it.totalQty : it.totalValue) || 0;
+      const rawBuy = Number(metric === "qty" ? it.buyQty : it.buyValue) || 0;
+      const rawSell = Number(metric === "qty" ? it.sellQty : it.sellValue) || 0;
+
+      const pct = Math.max(3, Math.min(100, Math.round((rawTotal / max) * 100)));
+
+      const displayTotal =
+        metric === "qty"
+          ? String(it.totalQty ?? "0")
+          : `Rp ${formatIDR(String(it.totalValue ?? "0"))}`;
+
+      const buyText =
+        metric === "qty"
+          ? String(it.buyQty ?? "0")
+          : `Rp ${formatIDR(String(it.buyValue ?? "0"))}`;
+
+      const sellText =
+        metric === "qty"
+          ? String(it.sellQty ?? "0")
+          : `Rp ${formatIDR(String(it.sellValue ?? "0"))}`;
+
+      // Net here is "sell - buy" (direction badge only)
+      const net = rawSell - rawBuy;
+      const netBadge =
+        net > 0
+          ? `<span class="badge rounded-pill bg-success-subtle text-success">Net +</span>`
+          : net < 0
+            ? `<span class="badge rounded-pill bg-danger-subtle text-danger">Net -</span>`
+            : `<span class="badge rounded-pill bg-secondary-subtle text-secondary">Net 0</span>`;
+
+      return `
+        <div class="top-commodity-row">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="d-flex align-items-start gap-2" style="min-width: 0;">
+              <span class="top-commodity-rank">${idx + 1}</span>
+
+              <div style="min-width: 0;">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="fw-semibold text-truncate">${it.commodityName}</div>
+                  ${netBadge}
+                </div>
+
+                <div class="text-muted small mt-1">
+                  <div class="d-flex justify-content-between gap-2">
+                    <span>Buy</span>
+                    <strong class="text-dark">${buyText}</strong>
+                  </div>
+                  <div class="d-flex justify-content-between gap-2 mt-1">
+                    <span>Sell</span>
+                    <strong class="text-dark">${sellText}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-end" style="flex: 0 0 auto;">
+              <div class="fw-semibold">${displayTotal}</div>
+            </div>
+          </div>
+
+          <div class="top-commodity-meter mt-2">
+            <div style="width:${pct}%;" class="bg-primary"></div>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  if (topCaptionEl) {
+    const filter = payload?.meta?.filter ?? state.filter;
+    const from = payload?.meta?.from;
+    const to = payload?.meta?.to;
+    const limit = payload?.meta?.limit ?? topState.limit;
+
+    const rangeText =
+      String(filter) === "all"
+        ? "All time"
+        : (from && to ? `${from} → ${to}` : getPeriodLabel());
+
+    topCaptionEl.textContent = `${rangeText} • Top ${limit}`;
+  }
+
+  const subtitle = document.getElementById("top-commodities-subtitle");
+  if (subtitle) {
+    subtitle.textContent = `Ranking • ${metric === "qty" ? "By Volume" : "By Value"}`;
+  }
+
+  const hint = document.getElementById("top-commodities-hint");
+  if (hint) {
+    hint.textContent = "Tap Volume/Value to switch";
+  }
+}
+
+async function refreshTopCommodities() {
+  try {
+    const q = buildTopCommoditiesQuery();
+    const payload = await dashboardApi.getTopCommodities(q);
+    renderTopCommodities(payload);
+  } catch (err) {
+    console.error("refreshTopCommodities failed:", err);
+    if (topListEl) topListEl.innerHTML = `<div class="text-muted small">Failed to load</div>`;
+    if (topCaptionEl) topCaptionEl.textContent = "";
   }
 }
 
@@ -306,6 +474,7 @@ document.querySelectorAll("[data-filter]").forEach((btn) => {
     // auto refresh
     refreshDashboard();
     refreshBuySellSeries();
+    refreshTopCommodities();
   });
 });
 
@@ -327,6 +496,7 @@ btnApplyRange?.addEventListener("click", () => {
 
   refreshDashboard();
   refreshBuySellSeries();
+  refreshTopCommodities();
 });
 
 modalEl?.addEventListener("hidden.bs.modal", clearRangeErrors);
@@ -355,6 +525,18 @@ metricGroup?.querySelectorAll("button[data-metric]").forEach((btn) => {
   });
 });
 
+/* Top commodities metric buttons */
+topMetricGroup?.querySelectorAll('button[data-top-metric]').forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const next = btn.getAttribute("data-top-metric"); // qty|value
+    if (!next || topState.metric === next) return;
+    topState.metric = next;
+
+    setActiveTopMetric(topState.metric);
+    refreshTopCommodities();
+  });
+});
+
 /* ================== INIT ================== */
 setActiveFilterButton(state.filter);
 setLabel();
@@ -368,6 +550,10 @@ initBuySellLineChart("buy-sell-line");
 setActiveGroupButtons(granularityGroup, "data-granularity", seriesState.granularity);
 setActiveGroupButtons(metricGroup, "data-metric", seriesState.metric);
 
+// init top commodities buttons
+setActiveTopMetric(topState.metric);
+
 // initial loads
 refreshDashboard();
 refreshBuySellSeries();
+refreshTopCommodities();

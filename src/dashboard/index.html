@@ -237,67 +237,34 @@
 
       <!-- TOP COMMODITIES -->
       <div class="col-12 col-xl-4">
-        <div class="card h-100">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <h4 class="card-title mb-0">Top Commodities</h4>
-            <div class="btn-group btn-group-sm" role="group" aria-label="Top commodities mode">
-              <button class="btn btn-primary" type="button">By Volume</button>
-              <button class="btn btn-outline-primary" type="button">By Value</button>
-            </div>
-          </div>
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-header bg-transparent border-0 pb-0">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <div>
+                <h4 class="card-title mb-1">Top Commodities</h4>
+                <div class="text-muted small" id="top-commodities-subtitle">Ranking • This period</div>
+              </div>
 
-          <div class="card-body">
-            <div class="mb-3">
-              <div class="d-flex justify-content-between">
-                <strong>Gold</strong>
-                <span class="text-muted">1.200</span>
-              </div>
-              <div class="progress">
-                <div class="progress-bar bg-primary" style="width: 80%"></div>
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <div class="d-flex justify-content-between">
-                <strong>Silver</strong>
-                <span class="text-muted">950</span>
-              </div>
-              <div class="progress">
-                <div class="progress-bar bg-danger" style="width: 63%"></div>
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <div class="d-flex justify-content-between">
-                <strong>Copper</strong>
-                <span class="text-muted">780</span>
-              </div>
-              <div class="progress">
-                <div class="progress-bar bg-primary" style="width: 52%"></div>
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <div class="d-flex justify-content-between">
-                <strong>Oil</strong>
-                <span class="text-muted">620</span>
-              </div>
-              <div class="progress">
-                <div class="progress-bar bg-danger" style="width: 41%"></div>
-              </div>
-            </div>
-
-            <div>
-              <div class="d-flex justify-content-between">
-                <strong>Wheat</strong>
-                <span class="text-muted">500</span>
-              </div>
-              <div class="progress">
-                <div class="progress-bar bg-danger" style="width: 33%"></div>
+              <div class="btn-group btn-group-sm" role="group" aria-label="Top commodities mode" id="top-commodities-metric">
+                <button class="btn btn-primary" type="button" data-top-metric="qty">Volume</button>
+                <button class="btn btn-outline-primary" type="button" data-top-metric="value">Value</button>
               </div>
             </div>
           </div>
 
+          <div class="card-body pt-3">
+            <div class="d-flex justify-content-between text-muted small mb-2">
+              <span>Commodity</span>
+              <span id="top-commodities-right-label">Total</span>
+            </div>
+
+            <div id="top-commodities-list" class="vstack gap-2"></div>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <small class="text-muted" id="top-commodities-caption"></small>
+              <small class="text-muted" id="top-commodities-hint"></small>
+            </div>
+          </div>
         </div>
       </div>
 
