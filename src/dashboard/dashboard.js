@@ -45,6 +45,13 @@ const topMetricGroup = document.getElementById("top-commodities-metric");
 const topListEl = document.getElementById("top-commodities-list");
 const topCaptionEl = document.getElementById("top-commodities-caption");
 
+// Recent transactions DOM
+const recentTxBodyEl = document.getElementById("recent-tx-body");
+const recentTxLoadingEl = document.getElementById("recent-tx-loading");
+const recentTxEmptyEl = document.getElementById("recent-tx-empty");
+const recentTxErrorEl = document.getElementById("recent-tx-error");
+const recentTxCaptionEl = document.getElementById("recent-tx-caption");
+
 /* ================== HELPERS ================== */
 function setText(id, value) {
   const el = document.getElementById(id);
@@ -387,6 +394,65 @@ async function refreshTopCommodities() {
   }
 }
 
+/* ================== RECENT TRANSACTIONS RENDER ================== */
+function toggleRecentTxState(mode) {
+  // mode: "loading" | "ready" | "empty" | "error"
+  recentTxLoadingEl?.classList.toggle("d-none", mode !== "loading");
+  recentTxEmptyEl?.classList.toggle("d-none", mode !== "empty");
+  recentTxErrorEl?.classList.toggle("d-none", mode !== "error");
+
+  // show/hide tbody only (table header stays)
+  if (recentTxBodyEl) recentTxBodyEl.classList.toggle("d-none", mode !== "ready");
+}
+
+function renderRecentTransactions(rows) {
+  if (!recentTxBodyEl) return;
+
+  if (!rows || !rows.length) {
+    recentTxBodyEl.innerHTML = "";
+    toggleRecentTxState("empty");
+    if (recentTxCaptionEl) recentTxCaptionEl.textContent = "";
+    return;
+  }
+
+  toggleRecentTxState("ready");
+  if (recentTxCaptionEl) recentTxCaptionEl.textContent = `Showing ${rows.length}`;
+
+  recentTxBodyEl.innerHTML = rows
+    .map((r) => {
+      const badge =
+        r.type === "BUY"
+          ? `<span class="badge badge-tx badge-buy">BUY</span>`
+          : `<span class="badge badge-tx badge-sell">SELL</span>`;
+
+      const totalText = `Rp ${formatIDR(String(r.total ?? "0"))}`;
+
+      return `
+        <tr>
+          <td class="text-muted small">${r.date}</td>
+          <td><span class="tx-commodity fw-semibold">${r.commodity}</span></td>
+          <td>${badge}</td>
+          <td class="text-end">${r.qty}</td>
+          <td class="text-end tx-total">${totalText}</td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
+async function refreshRecentTransactions() {
+  try {
+    toggleRecentTxState("loading");
+    const rows = await dashboardApi.getRecentTransactions();
+    renderRecentTransactions(rows);
+  } catch (err) {
+    console.error("refreshRecentTransactions failed:", err);
+    if (recentTxBodyEl) recentTxBodyEl.innerHTML = "";
+    toggleRecentTxState("error");
+    if (recentTxCaptionEl) recentTxCaptionEl.textContent = "";
+  }
+}
+
 /* ================== MAIN KPI LOAD ================== */
 async function refreshDashboard() {
   try {
@@ -475,6 +541,7 @@ document.querySelectorAll("[data-filter]").forEach((btn) => {
     refreshDashboard();
     refreshBuySellSeries();
     refreshTopCommodities();
+    refreshRecentTransactions();
   });
 });
 
@@ -497,6 +564,7 @@ btnApplyRange?.addEventListener("click", () => {
   refreshDashboard();
   refreshBuySellSeries();
   refreshTopCommodities();
+  refreshRecentTransactions();
 });
 
 modalEl?.addEventListener("hidden.bs.modal", clearRangeErrors);
@@ -557,3 +625,4 @@ setActiveTopMetric(topState.metric);
 refreshDashboard();
 refreshBuySellSeries();
 refreshTopCommodities();
+refreshRecentTransactions();

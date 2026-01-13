@@ -72,6 +72,16 @@ export type ITopCommoditiesResponse = {
   items: ITopCommodityItem[];
 };
 
+export interface IRecentTransactionRow {
+  date: string;
+  commodity: string;
+  type: "BUY" | "SELL";
+  qty: string;
+  total: string;
+  createdAt: string;
+}
+
+export type IRecentTransactionsResponse = IRecentTransactionRow[];
 
 const prefix = '/dashboard';
 const getTotalBuyTransactions = async (queryParams?: string): Promise<ITotalTransactions> => {
@@ -127,6 +137,15 @@ const getTopCommodities = async (queryParams?: string): Promise<ITopCommoditiesR
   return res.data;
 };
 
+const getRecentTransactions = async (): Promise<IRecentTransactionsResponse> => {
+  const res = await auth.authRequest<StandardResponse<IRecentTransactionsResponse>>({
+    method: "get",
+    url: `${prefix}/recent-transactions`,
+  });
+
+  return res.data;
+};
+
 export default {
   getTotalBuyTransactions,
   getTotalSellTransactions,
@@ -134,4 +153,5 @@ export default {
   getStockAssets,
   getBuySellSeries,
   getTopCommodities,
+  getRecentTransactions,
 }

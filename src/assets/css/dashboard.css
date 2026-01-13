@@ -294,3 +294,173 @@
   font-size: 0.8rem;
   line-height: 1.15;
 }
+
+/* Card header: tighter + cleaner */
+.recent-tx-card .card-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+
+/* Table base: consistent spacing + font */
+.recent-tx-table {
+  table-layout: fixed;              /* enforce column widths */
+}
+
+.recent-tx-table thead th {
+  padding: 10px 16px;               /* consistent header padding */
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: rgba(15, 23, 42, .72);
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+
+.recent-tx-table tbody td {
+  padding: 12px 16px;               /* better row height */
+  font-size: 13px;
+  color: rgba(15, 23, 42, .86);
+  vertical-align: middle;
+  border-top: 1px solid rgba(0,0,0,.04);
+}
+
+/* Hover feels more premium */
+.recent-tx-table tbody tr {
+  transition: background .15s ease, transform .15s ease;
+}
+.recent-tx-table tbody tr:hover {
+  background: rgba(13,110,253,.035);
+}
+
+/* Make numbers align nicely */
+.recent-tx-table td.text-end,
+.recent-tx-table th.text-end {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Date: same baseline as others, slightly muted, nowrap */
+.recent-tx-table tbody td:first-child {
+  color: rgba(15, 23, 42, .62);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Commodity: don't waste space, allow truncation */
+.recent-tx-table td:nth-child(2) {
+  width: 38%;                       /* shrink commodity column */
+}
+.recent-tx-table td:nth-child(2) .tx-commodity {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Type column: keep centered-ish feel */
+.recent-tx-table td:nth-child(3) {
+  white-space: nowrap;
+}
+
+/* Qty column: keep narrow and stable */
+.recent-tx-table td:nth-child(4) {
+  width: 12%;
+  white-space: nowrap;
+}
+
+/* Total column: give it space + nowrap */
+.recent-tx-table td:nth-child(5),
+.recent-tx-table th:nth-child(5) {
+  width: 24%;
+  white-space: nowrap;              /* prevent Rp breaking */
+}
+
+/* Total emphasis */
+.recent-tx-table .tx-total {
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+/* Badges: more refined */
+.badge-tx {
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: .04em;
+  padding: .32rem .55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,.04);
+}
+
+.badge-buy {
+  background: rgba(25,135,84,.12);
+  color: #198754;
+}
+
+.badge-sell {
+  background: rgba(220,53,69,.12);
+  color: #dc3545;
+}
+
+/* Force table to obey our widths */
+.recent-tx-table {
+  table-layout: fixed;
+}
+
+/* DATE — fixed, compact */
+.recent-tx-table th:nth-child(1),
+.recent-tx-table td:nth-child(1) {
+  width: 110px;
+  white-space: nowrap;
+}
+
+/* COMMODITY — tighter than before */
+.recent-tx-table th:nth-child(2),
+.recent-tx-table td:nth-child(2) {
+  width: 32%;
+  max-width: 0;                 /* REQUIRED for truncation */
+}
+
+/* TYPE — very small */
+.recent-tx-table th:nth-child(3),
+.recent-tx-table td:nth-child(3) {
+  width: 80px;
+  white-space: nowrap;
+}
+
+/* QTY — minimal but stable */
+.recent-tx-table th:nth-child(4),
+.recent-tx-table td:nth-child(4) {
+  width: 90px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* TOTAL — give it real space */
+.recent-tx-table th:nth-child(5),
+.recent-tx-table td:nth-child(5) {
+  width: 26%;
+  min-width: 160px;
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* Commodity text truncation (hard guarantee) */
+.recent-tx-table td:nth-child(2) .tx-commodity {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Center Type column content */
+.recent-tx-table th:nth-child(3),
+.recent-tx-table td:nth-child(3) {
+  text-align: center;
+}
+
+/* Make badge optically centered */
+.recent-tx-table td:nth-child(3) .badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px; /* optical balance for BUY / SELL */
+}

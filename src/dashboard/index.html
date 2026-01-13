@@ -189,14 +189,15 @@
 
       <!-- RECENT TRANSACTIONS -->
       <div class="col-12 col-xl-8">
-        <div class="card h-100">
-          <div class="card-header">
+        <div class="card h-100 recent-tx-card">
+          <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="card-title mb-0">Recent Transactions</h4>
+            <small class="text-muted" id="recent-tx-caption"></small>
           </div>
 
           <div class="card-body p-0">
             <div class="table-responsive">
-              <table class="table table-hover mb-0">
+              <table class="table table-hover mb-0 recent-tx-table">
                 <thead class="table-light">
                   <tr>
                     <th>Date</th>
@@ -206,30 +207,27 @@
                     <th class="text-end">Total</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td>2026-01-25</td>
-                    <td>Gold</td>
-                    <td><span class="badge badge-sell text-white">SELL</span></td>
-                    <td class="text-end">150</td>
-                    <td class="text-end">Rp 7.500.000</td>
-                  </tr>
-                  <tr>
-                    <td>2026-01-24</td>
-                    <td>Silver</td>
-                    <td><span class="badge badge-buy text-white">BUY</span></td>
-                    <td class="text-end">200</td>
-                    <td class="text-end">Rp 4.000.000</td>
-                  </tr>
-                  <tr>
-                    <td>2026-01-23</td>
-                    <td>Oil</td>
-                    <td><span class="badge badge-buy text-white">BUY</span></td>
-                    <td class="text-end">300</td>
-                    <td class="text-end">Rp 6.900.000</td>
-                  </tr>
+
+                <tbody id="recent-tx-body">
+                  <!-- Filled by JS -->
                 </tbody>
               </table>
+            </div>
+
+            <!-- Loading / Empty / Error -->
+            <div class="p-3 d-none" id="recent-tx-loading">
+              <div class="d-flex align-items-center gap-2 text-muted small">
+                <div class="spinner-border spinner-border-sm" role="status"></div>
+                <span>Loading recent transactions...</span>
+              </div>
+            </div>
+
+            <div class="p-3 d-none text-muted small" id="recent-tx-empty">
+              No recent transactions.
+            </div>
+
+            <div class="p-3 d-none text-danger small" id="recent-tx-error">
+              Failed to load recent transactions.
             </div>
           </div>
         </div>
