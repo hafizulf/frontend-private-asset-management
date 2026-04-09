@@ -19,3 +19,13 @@
   line-height:1;
   color:#0dcaf0;
 }
+
+.badge-tx.badge-buy {
+  background-color: #28a745 !important;
+  color: #fff;
+}
+
+.badge-tx.badge-sell {
+  background-color: #dc3545 !important;
+  color: #fff;
+}
