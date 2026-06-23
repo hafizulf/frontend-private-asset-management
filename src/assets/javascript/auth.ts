@@ -17,7 +17,7 @@ function getStatus(err: any): number | undefined {
 }
 
 function isUnauthorizedStatus(status: any) {
-  return status === 401 || status === 403 || status === 422;
+  return status === 401 || status === 403;
 }
 
 async function refreshAccessToken(): Promise<string> {
